@@ -110,15 +110,15 @@ pub use models::{Account, Bill, Provider, ProviderConfig};
 pub const VERSION: &str = env!("CARGO_PKG_VERSION");
 
 /// Initialize the billing library
-/// 
+///
 /// This function should be called once at the start of your application.
 /// It initializes the cloud provider registry and sets up logging.
 pub async fn init() -> Result<()> {
     tracing::info!("Initializing cbilling library v{}", VERSION);
-    
+
     // Initialize providers registry
     providers::registry::init().await?;
-    
+
     tracing::info!("Cloud-billing library initialized successfully");
     Ok(())
 }

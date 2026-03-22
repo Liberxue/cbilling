@@ -1,5 +1,4 @@
 use ratatui::{
-    Frame,
     layout::{Alignment, Constraint, Layout, Margin, Rect},
     style::{Color, Modifier, Style},
     text::{Line, Span},
@@ -7,6 +6,7 @@ use ratatui::{
         Block, BorderType, Borders, Cell, Clear, Padding, Paragraph, Row, Scrollbar,
         ScrollbarOrientation, ScrollbarState, Table, Wrap,
     },
+    Frame,
 };
 
 use crate::app::{App, InputMode, ProviderDataState, SortColumn};
@@ -14,19 +14,19 @@ use crate::app::{App, InputMode, ProviderDataState, SortColumn};
 // Terminal-safe: all text uses Reset (inherits terminal fg/bg).
 // Only use named ANSI colors for semantic highlights that must stand out.
 // Dim = Reset + DIM modifier (works on both light/dark backgrounds).
-const C_ACCENT: Color = Color::Cyan;       // interactive elements, active items
-const C_TITLE: Color = Color::Cyan;        // section titles, headers
-const C_COST_HIGH: Color = Color::Red;     // cost > 10,000
-const C_COST_MID: Color = Color::Yellow;   // cost > 1,000
-const C_COST_LOW: Color = Color::Green;    // cost < 1,000
-const C_BORDER: Color = Color::Reset;      // borders follow terminal default
+const C_ACCENT: Color = Color::Cyan; // interactive elements, active items
+const C_TITLE: Color = Color::Cyan; // section titles, headers
+const C_COST_HIGH: Color = Color::Red; // cost > 10,000
+const C_COST_MID: Color = Color::Yellow; // cost > 1,000
+const C_COST_LOW: Color = Color::Green; // cost < 1,000
+const C_BORDER: Color = Color::Reset; // borders follow terminal default
 const C_HIGHLIGHT_BG: Color = Color::DarkGray; // selected row background
-const C_TOTAL: Color = Color::Green;       // total cost number
-const C_ERR: Color = Color::Red;           // error messages
-const C_UP: Color = Color::Red;            // cost increased
-const C_DOWN: Color = Color::Green;        // cost decreased
+const C_TOTAL: Color = Color::Green; // total cost number
+const C_ERR: Color = Color::Red; // error messages
+const C_UP: Color = Color::Red; // cost increased
+const C_DOWN: Color = Color::Green; // cost decreased
 const C_SEARCH_BG: Color = Color::Reset;
-const C_TEXT: Color = Color::Reset;        // primary text — terminal default
+const C_TEXT: Color = Color::Reset; // primary text — terminal default
 
 pub fn draw(frame: &mut Frame, app: &mut App) {
     let has_search = app.input_mode == InputMode::Search || !app.search_query.is_empty();
@@ -34,12 +34,16 @@ pub fn draw(frame: &mut Frame, app: &mut App) {
     // Summary height: 2 (total + blank) + providers + loading + errors + 2 (border)
     let provider_count = app.cost_summary().len()
         + app.loading_errors().len()
-        + app.data.values().filter(|s| matches!(s, ProviderDataState::Loading)).count();
+        + app
+            .data
+            .values()
+            .filter(|s| matches!(s, ProviderDataState::Loading))
+            .count();
     let content_lines = 2 + provider_count; // total line + blank + providers
     let summary_h = (content_lines as u16 + 2) // +2 for border
-        .max(5)                                 // minimum useful height
-        .min(frame.area().height / 2)           // never more than half screen
-        .min(18);                               // hard cap
+        .max(5) // minimum useful height
+        .min(frame.area().height / 2) // never more than half screen
+        .min(18); // hard cap
 
     let mut constraints = vec![
         Constraint::Length(3),         // tabs
@@ -145,14 +149,15 @@ fn render_tabs(frame: &mut Frame, app: &App, area: Rect) {
 
     let mut spans: Vec<Span<'static>> = Vec::new();
     if has_left {
-        spans.push(Span::styled("<< ".to_string(), Style::default().fg(C_TEXT).add_modifier(Modifier::DIM)));
+        spans.push(Span::styled(
+            "<< ".to_string(),
+            Style::default().fg(C_TEXT).add_modifier(Modifier::DIM),
+        ));
     }
     for i in vis_start..vis_end {
         let (label, is_active) = &tab_labels[i];
         let style = if *is_active {
-            Style::default()
-                .fg(C_ACCENT)
-                .add_modifier(Modifier::BOLD)
+            Style::default().fg(C_ACCENT).add_modifier(Modifier::BOLD)
         } else {
             Style::default().fg(C_TEXT).add_modifier(Modifier::DIM)
         };
@@ -165,7 +170,10 @@ fn render_tabs(frame: &mut Frame, app: &App, area: Rect) {
         }
     }
     if has_right {
-        spans.push(Span::styled(" >>".to_string(), Style::default().fg(C_TEXT).add_modifier(Modifier::DIM)));
+        spans.push(Span::styled(
+            " >>".to_string(),
+            Style::default().fg(C_TEXT).add_modifier(Modifier::DIM),
+        ));
     }
 
     let block = Block::default()
@@ -198,13 +206,14 @@ fn render_chart_panel(frame: &mut Frame, app: &App, area: Rect) {
     let mut total_spans: Vec<Span<'static>> = Vec::new();
     for (currency, cost) in &totals {
         if !total_spans.is_empty() {
-            total_spans.push(Span::styled("  +  ".to_string(), Style::default().fg(C_TEXT).add_modifier(Modifier::DIM)));
+            total_spans.push(Span::styled(
+                "  +  ".to_string(),
+                Style::default().fg(C_TEXT).add_modifier(Modifier::DIM),
+            ));
         }
         total_spans.push(Span::styled(
             format_cost(*cost),
-            Style::default()
-                .fg(C_TOTAL)
-                .add_modifier(Modifier::BOLD),
+            Style::default().fg(C_TOTAL).add_modifier(Modifier::BOLD),
         ));
         total_spans.push(Span::styled(
             format!(" {}", currency),
@@ -237,10 +246,7 @@ fn render_chart_panel(frame: &mut Frame, app: &App, area: Rect) {
     lines.push(Line::raw(""));
 
     // -- Bar chart per provider --
-    let max_cost = summaries
-        .iter()
-        .map(|(_, c, _)| *c)
-        .fold(0.0_f64, f64::max);
+    let max_cost = summaries.iter().map(|(_, c, _)| *c).fold(0.0_f64, f64::max);
 
     // Determine if we need compact mode (2 providers per line)
     let loading_count = app
@@ -323,7 +329,10 @@ fn render_chart_panel(frame: &mut Frame, app: &App, area: Rect) {
                     format!(" {:>10} {:<3}", format_cost(*cost), currency),
                     Style::default().fg(C_TEXT),
                 ),
-                Span::styled(format!(" {:>3.0}%", pct), Style::default().fg(C_TEXT).add_modifier(Modifier::DIM)),
+                Span::styled(
+                    format!(" {:>3.0}%", pct),
+                    Style::default().fg(C_TEXT).add_modifier(Modifier::DIM),
+                ),
             ]));
         }
     }
@@ -380,9 +389,7 @@ fn render_chart_panel(frame: &mut Frame, app: &App, area: Rect) {
     let title = Line::from(vec![
         Span::styled(
             " CLOUD BILLING ",
-            Style::default()
-                .fg(C_ACCENT)
-                .add_modifier(Modifier::BOLD),
+            Style::default().fg(C_ACCENT).add_modifier(Modifier::BOLD),
         ),
         Span::styled(
             format!("v{}", cbilling::VERSION),
@@ -394,9 +401,7 @@ fn render_chart_panel(frame: &mut Frame, app: &App, area: Rect) {
         ),
         Span::styled(
             format!("{}{}", app.billing_cycle, month_tag),
-            Style::default()
-                .fg(C_TEXT)
-                .add_modifier(Modifier::BOLD),
+            Style::default().fg(C_TEXT).add_modifier(Modifier::BOLD),
         ),
         Span::styled(
             " > |",
@@ -426,9 +431,7 @@ fn render_search_bar(frame: &mut Frame, app: &App, area: Rect) {
     let line = Line::from(vec![
         Span::styled(
             " / ".to_string(),
-            Style::default()
-                .fg(C_ACCENT)
-                .add_modifier(Modifier::BOLD),
+            Style::default().fg(C_ACCENT).add_modifier(Modifier::BOLD),
         ),
         Span::styled(
             format!("{}{}", app.search_query, cursor),
@@ -490,12 +493,10 @@ fn render_table(frame: &mut Frame, app: &mut App, area: Rect) {
         Cell::from(" #").style(hdr_style(SortColumn::Product)),
         Cell::from(format!(" Product{}", arrow(SortColumn::Product)))
             .style(hdr_style(SortColumn::Product)),
-        Cell::from(format!(" Code{}", arrow(SortColumn::Code)))
-            .style(hdr_style(SortColumn::Code)),
+        Cell::from(format!(" Code{}", arrow(SortColumn::Code))).style(hdr_style(SortColumn::Code)),
         Cell::from(format!("       Cost{}", arrow(SortColumn::Cost)))
             .style(hdr_style(SortColumn::Cost)),
-        Cell::from(format!("  MoM{}", arrow(SortColumn::MoM)))
-            .style(hdr_style(SortColumn::MoM)),
+        Cell::from(format!("  MoM{}", arrow(SortColumn::MoM))).style(hdr_style(SortColumn::MoM)),
         Cell::from(" Qty").style(Style::default().fg(C_TITLE).add_modifier(Modifier::BOLD)),
         Cell::from(" Region").style(Style::default().fg(C_TITLE).add_modifier(Modifier::BOLD)),
     ])
@@ -538,7 +539,11 @@ fn render_table(frame: &mut Frame, app: &mut App, area: Rect) {
 
             // Expand indicator
             let expand_marker = if !p.is_sub_row && !p.region_details.is_empty() {
-                if app.expanded.contains(&p.product_code) { "▼" } else { "▶" }
+                if app.expanded.contains(&p.product_code) {
+                    "▼"
+                } else {
+                    "▶"
+                }
             } else {
                 " "
             };
@@ -550,15 +555,20 @@ fn render_table(frame: &mut Frame, app: &mut App, area: Rect) {
             };
 
             Row::new(vec![
-                Cell::from(format!("{:>3}", if p.is_sub_row { String::new() } else { format!("{}", i + 1) }))
-                    .style(dim),
-                Cell::from(format!("{}{}", expand_marker, &p.product_name))
-                    .style(name_style),
+                Cell::from(format!(
+                    "{:>3}",
+                    if p.is_sub_row {
+                        String::new()
+                    } else {
+                        format!("{}", i + 1)
+                    }
+                ))
+                .style(dim),
+                Cell::from(format!("{}{}", expand_marker, &p.product_name)).style(name_style),
                 Cell::from(format!(" {}", &p.product_code)).style(dim),
                 Cell::from(format!("{:>12}", format_cost(p.cost)))
                     .style(Style::default().fg(cost_color)),
-                Cell::from(format!("{:>7}", mom_str))
-                    .style(Style::default().fg(mom_color)),
+                Cell::from(format!("{:>7}", mom_str)).style(Style::default().fg(mom_color)),
                 Cell::from(qty_str).style(Style::default().fg(qty_color)),
                 Cell::from(format!(" {}", &p.regions_display)).style(dim),
             ])
@@ -599,9 +609,7 @@ fn render_table(frame: &mut Frame, app: &mut App, area: Rect) {
                 .border_style(Style::default().fg(C_BORDER))
                 .title(Span::styled(
                     title,
-                    Style::default()
-                        .fg(C_TITLE)
-                        .add_modifier(Modifier::BOLD),
+                    Style::default().fg(C_TITLE).add_modifier(Modifier::BOLD),
                 )),
         );
 
@@ -629,11 +637,7 @@ fn render_table(frame: &mut Frame, app: &mut App, area: Rect) {
 
 fn render_footer(frame: &mut Frame, app: &App, area: Rect) {
     let items: &[(&str, &str)] = if app.input_mode == InputMode::Search {
-        &[
-            ("Enter", "Confirm"),
-            ("Esc", "Cancel"),
-            ("Type", "Filter"),
-        ]
+        &[("Enter", "Confirm"), ("Esc", "Cancel"), ("Type", "Filter")]
     } else {
         &[
             ("j/k", "Nav"),
@@ -653,11 +657,12 @@ fn render_footer(frame: &mut Frame, app: &App, area: Rect) {
     for (i, (k, d)) in items.iter().enumerate() {
         spans.push(Span::styled(
             k.to_string(),
-            Style::default()
-                .fg(C_ACCENT)
-                .add_modifier(Modifier::BOLD),
+            Style::default().fg(C_ACCENT).add_modifier(Modifier::BOLD),
         ));
-        spans.push(Span::styled(format!(" {}", d), Style::default().fg(C_TEXT).add_modifier(Modifier::DIM)));
+        spans.push(Span::styled(
+            format!(" {}", d),
+            Style::default().fg(C_TEXT).add_modifier(Modifier::DIM),
+        ));
         if i < items.len() - 1 {
             spans.push(Span::styled(
                 " | ".to_string(),
@@ -681,9 +686,7 @@ fn render_help(frame: &mut Frame) {
     let help = vec![
         Line::from(Span::styled(
             " Keyboard Shortcuts",
-            Style::default()
-                .fg(C_ACCENT)
-                .add_modifier(Modifier::BOLD),
+            Style::default().fg(C_ACCENT).add_modifier(Modifier::BOLD),
         )),
         Line::raw(""),
         help_line("j / Down  ", "Move down"),
@@ -725,9 +728,7 @@ fn render_help(frame: &mut Frame) {
         .border_style(Style::default().fg(C_ACCENT))
         .title(Span::styled(
             " Help ",
-            Style::default()
-                .fg(C_ACCENT)
-                .add_modifier(Modifier::BOLD),
+            Style::default().fg(C_ACCENT).add_modifier(Modifier::BOLD),
         ))
         .title_alignment(Alignment::Center)
         .style(Style::default().bg(Color::Reset))

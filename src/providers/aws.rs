@@ -6,8 +6,8 @@
 
 use aws_config::{BehaviorVersion, Region};
 use aws_sdk_costexplorer::{
-    Client as CostExplorerClient,
     types::{DateInterval, Granularity, GroupDefinition, Metric},
+    Client as CostExplorerClient,
 };
 use serde::{Deserialize, Serialize};
 

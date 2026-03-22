@@ -19,11 +19,8 @@ async fn main() -> cbilling::Result<()> {
     let secret_access_key = std::env::var("VOLCENGINE_SECRET_ACCESS_KEY")
         .expect("VOLCENGINE_SECRET_ACCESS_KEY not set");
 
-    let client = VolcengineBillingClient::new(
-        access_key_id,
-        secret_access_key,
-        "cn-beijing".to_string(),
-    );
+    let client =
+        VolcengineBillingClient::new(access_key_id, secret_access_key, "cn-beijing".to_string());
 
     let bill_period = chrono::Local::now().format("%Y-%m").to_string();
     println!("Querying bill details for: {}", bill_period);

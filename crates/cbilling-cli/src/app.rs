@@ -40,7 +40,6 @@ impl SortColumn {
             Self::Account => Self::Cost,
         }
     }
-
 }
 
 pub struct App {
@@ -359,7 +358,10 @@ impl App {
             self.sort_ascending = !self.sort_ascending;
         } else {
             self.sort_column = col;
-            self.sort_ascending = matches!(col, SortColumn::Product | SortColumn::Code | SortColumn::Account);
+            self.sort_ascending = matches!(
+                col,
+                SortColumn::Product | SortColumn::Code | SortColumn::Account
+            );
         }
         self.table_state.select(Some(0));
     }
@@ -406,7 +408,8 @@ impl App {
 
         let query = self.search_query.to_lowercase();
 
-        let mut rows: Vec<ProductRow> = raw.into_iter()
+        let mut rows: Vec<ProductRow> = raw
+            .into_iter()
             .filter(|p| {
                 if query.is_empty() {
                     return true;
@@ -425,7 +428,11 @@ impl App {
                 let prev_count = prev.and_then(|(_, c)| *c);
                 let mom_change = prev_cost.map(|pv| {
                     if pv == 0.0 {
-                        if p.cost > 0.0 { f64::INFINITY } else { 0.0 }
+                        if p.cost > 0.0 {
+                            f64::INFINITY
+                        } else {
+                            0.0
+                        }
                     } else {
                         (p.cost - pv) / pv * 100.0
                     }
@@ -460,21 +467,34 @@ impl App {
         let asc = self.sort_ascending;
         rows.sort_by(|a, b| {
             let ord = match self.sort_column {
-                SortColumn::Cost => a.cost.partial_cmp(&b.cost).unwrap_or(std::cmp::Ordering::Equal),
+                SortColumn::Cost => a
+                    .cost
+                    .partial_cmp(&b.cost)
+                    .unwrap_or(std::cmp::Ordering::Equal),
                 SortColumn::MoM => {
                     let am = a.mom_change.unwrap_or(f64::NEG_INFINITY);
                     let bm = b.mom_change.unwrap_or(f64::NEG_INFINITY);
                     am.partial_cmp(&bm).unwrap_or(std::cmp::Ordering::Equal)
                 }
-                SortColumn::Product => a.product_name.to_lowercase().cmp(&b.product_name.to_lowercase()),
-                SortColumn::Code => a.product_code.to_lowercase().cmp(&b.product_code.to_lowercase()),
+                SortColumn::Product => a
+                    .product_name
+                    .to_lowercase()
+                    .cmp(&b.product_name.to_lowercase()),
+                SortColumn::Code => a
+                    .product_code
+                    .to_lowercase()
+                    .cmp(&b.product_code.to_lowercase()),
                 SortColumn::Account => {
                     let aa = a.account_name.as_deref().unwrap_or("");
                     let ba = b.account_name.as_deref().unwrap_or("");
                     aa.to_lowercase().cmp(&ba.to_lowercase())
                 }
             };
-            if asc { ord } else { ord.reverse() }
+            if asc {
+                ord
+            } else {
+                ord.reverse()
+            }
         });
 
         // Insert expanded region sub-rows
@@ -534,9 +554,7 @@ impl App {
                     summaries.push((provider.clone(), data.total_cost, data.currency.clone()));
                 }
             }
-            summaries.sort_by(|a, b| {
-                b.1.partial_cmp(&a.1).unwrap_or(std::cmp::Ordering::Equal)
-            });
+            summaries.sort_by(|a, b| b.1.partial_cmp(&a.1).unwrap_or(std::cmp::Ordering::Equal));
             summaries
         } else if let Some(ProviderDataState::Loaded(data)) = self.data.get(tab_name) {
             vec![(tab_name.clone(), data.total_cost, data.currency.clone())]

@@ -16,14 +16,15 @@ async fn main() -> cbilling::Result<()> {
 
     println!("[Cloudflare] Billing Example\n");
 
-    let account_id =
-        std::env::var("CLOUDFLARE_ACCOUNT_ID").expect("CLOUDFLARE_ACCOUNT_ID not set");
+    let account_id = std::env::var("CLOUDFLARE_ACCOUNT_ID").expect("CLOUDFLARE_ACCOUNT_ID not set");
 
     let client = if let Ok(token) = std::env::var("CLOUDFLARE_API_TOKEN") {
         CloudflareBillingClient::new_with_token(account_id, token)
     } else {
-        let api_key = std::env::var("CLOUDFLARE_API_KEY").expect("CLOUDFLARE_API_TOKEN or CLOUDFLARE_API_KEY not set");
-        let api_email = std::env::var("CLOUDFLARE_API_EMAIL").expect("CLOUDFLARE_API_EMAIL not set");
+        let api_key = std::env::var("CLOUDFLARE_API_KEY")
+            .expect("CLOUDFLARE_API_TOKEN or CLOUDFLARE_API_KEY not set");
+        let api_email =
+            std::env::var("CLOUDFLARE_API_EMAIL").expect("CLOUDFLARE_API_EMAIL not set");
         CloudflareBillingClient::new_with_key(account_id, api_key, api_email)
     };
 

@@ -138,26 +138,28 @@ impl CloudflareBillingClient {
         if let Some(ref token) = self.api_token {
             vec![("Authorization", format!("Bearer {}", token))]
         } else if let (Some(ref key), Some(ref email)) = (&self.api_key, &self.api_email) {
-            vec![
-                ("X-Auth-Key", key.clone()),
-                ("X-Auth-Email", email.clone()),
-            ]
+            vec![("X-Auth-Key", key.clone()), ("X-Auth-Email", email.clone())]
         } else {
             vec![]
         }
     }
 
-    async fn call_api<T: serde::de::DeserializeOwned>(&self, url: &str) -> Result<CfApiResponse<T>> {
-        let mut req = self.http_client.get(url).header("Content-Type", "application/json");
+    async fn call_api<T: serde::de::DeserializeOwned>(
+        &self,
+        url: &str,
+    ) -> Result<CfApiResponse<T>> {
+        let mut req = self
+            .http_client
+            .get(url)
+            .header("Content-Type", "application/json");
 
         for (key, value) in self.auth_headers() {
             req = req.header(key, value);
         }
 
-        let response = req
-            .send()
-            .await
-            .map_err(|e| BillingError::HttpError(format!("Cloudflare API request failed: {}", e)))?;
+        let response = req.send().await.map_err(|e| {
+            BillingError::HttpError(format!("Cloudflare API request failed: {}", e))
+        })?;
 
         if !response.status().is_success() {
             let status = response.status();
@@ -168,12 +170,9 @@ impl CloudflareBillingClient {
             )));
         }
 
-        let api_response: CfApiResponse<T> = response
-            .json()
-            .await
-            .map_err(|e| {
-                BillingError::SerializationError(format!("Failed to parse response: {}", e))
-            })?;
+        let api_response: CfApiResponse<T> = response.json().await.map_err(|e| {
+            BillingError::SerializationError(format!("Failed to parse response: {}", e))
+        })?;
 
         if !api_response.success {
             let err_msg = api_response

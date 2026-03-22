@@ -6,25 +6,25 @@
 //! Provides core billing query functionality for multiple cloud providers.
 //! For database operations, use the `db` module directly.
 
-use std::collections::HashMap;
 use serde::{Deserialize, Serialize};
+use std::collections::HashMap;
 
 use crate::error::{BillingError, Result};
 
 #[cfg(feature = "aliyun")]
 use crate::providers::aliyun;
-#[cfg(feature = "tencentcloud")]
-use crate::providers::tencentcloud;
 #[cfg(feature = "aws")]
 use crate::providers::aws;
-#[cfg(feature = "volcengine")]
-use crate::providers::volcengine;
-#[cfg(feature = "ucloud")]
-use crate::providers::ucloud;
-#[cfg(feature = "gcp")]
-use crate::providers::gcp;
 #[cfg(feature = "cloudflare")]
 use crate::providers::cloudflare;
+#[cfg(feature = "gcp")]
+use crate::providers::gcp;
+#[cfg(feature = "tencentcloud")]
+use crate::providers::tencentcloud;
+#[cfg(feature = "ucloud")]
+use crate::providers::ucloud;
+#[cfg(feature = "volcengine")]
+use crate::providers::volcengine;
 
 /// Cloud account configuration
 #[derive(Debug, Clone, Deserialize, Serialize)]
@@ -229,7 +229,14 @@ impl CloudBillingService {
             let page_size = 300;
             let mut page_num = 1;
             // key: "code:name", value: (total_cost, instance_ids, region -> (cost, count))
-            let mut products_map: HashMap<String, (f64, std::collections::HashSet<String>, HashMap<String, (f64, u32)>)> = HashMap::new();
+            let mut products_map: HashMap<
+                String,
+                (
+                    f64,
+                    std::collections::HashSet<String>,
+                    HashMap<String, (f64, u32)>,
+                ),
+            > = HashMap::new();
 
             loop {
                 let response = client
@@ -260,9 +267,8 @@ impl CloudBillingService {
                         let product_name = item
                             .product_name
                             .unwrap_or_else(|| "Unknown Product".to_string());
-                        let product_code = item
-                            .product_code
-                            .unwrap_or_else(|| "unknown".to_string());
+                        let product_code =
+                            item.product_code.unwrap_or_else(|| "unknown".to_string());
                         let region = item.region.unwrap_or_default();
                         let instance_id = item.instance_id.unwrap_or_default();
 
@@ -292,14 +298,26 @@ impl CloudBillingService {
                 .into_iter()
                 .map(|(key, (cost, instances, regions_map))| {
                     let parts: Vec<&str> = key.splitn(2, ':').collect();
-                    let count = if instances.is_empty() { None } else { Some(instances.len() as u32) };
+                    let count = if instances.is_empty() {
+                        None
+                    } else {
+                        Some(instances.len() as u32)
+                    };
                     let mut regions: Vec<String> = regions_map.keys().cloned().collect();
                     regions.sort();
                     let mut region_details: Vec<RegionDetail> = regions_map
                         .into_iter()
-                        .map(|(r, (c, n))| RegionDetail { region: r, cost: c, count: n })
+                        .map(|(r, (c, n))| RegionDetail {
+                            region: r,
+                            cost: c,
+                            count: n,
+                        })
                         .collect();
-                    region_details.sort_by(|a, b| b.cost.partial_cmp(&a.cost).unwrap_or(std::cmp::Ordering::Equal));
+                    region_details.sort_by(|a, b| {
+                        b.cost
+                            .partial_cmp(&a.cost)
+                            .unwrap_or(std::cmp::Ordering::Equal)
+                    });
                     ProductCost {
                         product_code: parts.first().unwrap_or(&"unknown").to_string(),
                         product_name: parts.get(1).unwrap_or(&"Unknown").to_string(),
@@ -367,9 +385,7 @@ impl CloudBillingService {
             let secret_key = account
                 .secret_key
                 .ok_or_else(|| BillingError::ServiceError("Missing secret_key".to_string()))?;
-            let region = account
-                .region
-                .unwrap_or_else(|| "ap-guangzhou".to_string());
+            let region = account.region.unwrap_or_else(|| "ap-guangzhou".to_string());
 
             let client =
                 tencentcloud::TencentCloudBillingClient::new(secret_id, secret_key, region);
@@ -540,23 +556,27 @@ impl CloudBillingService {
             let access_key_id = account
                 .access_key_id
                 .ok_or_else(|| BillingError::ServiceError("Missing access_key_id".to_string()))?;
-            let secret_access_key = account.secret_access_key.or(account.access_key_secret)
+            let secret_access_key = account
+                .secret_access_key
+                .or(account.access_key_secret)
                 .ok_or_else(|| {
                     BillingError::ServiceError("Missing secret_access_key".to_string())
                 })?;
-            let region = account
-                .region
-                .unwrap_or_else(|| "cn-beijing".to_string());
+            let region = account.region.unwrap_or_else(|| "cn-beijing".to_string());
 
-            let client = volcengine::VolcengineBillingClient::new(
-                access_key_id,
-                secret_access_key,
-                region,
-            );
+            let client =
+                volcengine::VolcengineBillingClient::new(access_key_id, secret_access_key, region);
 
             let limit = 100;
             let mut offset = 0;
-            let mut products_map: HashMap<String, (f64, std::collections::HashSet<String>, HashMap<String, (f64, u32)>)> = HashMap::new();
+            let mut products_map: HashMap<
+                String,
+                (
+                    f64,
+                    std::collections::HashSet<String>,
+                    HashMap<String, (f64, u32)>,
+                ),
+            > = HashMap::new();
 
             loop {
                 let response = client
@@ -580,8 +600,14 @@ impl CloudBillingService {
                             .and_then(|s| s.parse().ok())
                             .unwrap_or(0.0);
                         total_cost += cost;
-                        let name = item.product_zh.clone().unwrap_or_else(|| "Unknown".to_string());
-                        let code = item.product.clone().unwrap_or_else(|| "unknown".to_string());
+                        let name = item
+                            .product_zh
+                            .clone()
+                            .unwrap_or_else(|| "Unknown".to_string());
+                        let code = item
+                            .product
+                            .clone()
+                            .unwrap_or_else(|| "unknown".to_string());
                         let region = item.region.clone().unwrap_or_default();
                         let instance_id = item.instance_id.clone().unwrap_or_default();
 
@@ -613,14 +639,26 @@ impl CloudBillingService {
                 .into_iter()
                 .map(|(key, (cost, instances, regions_map))| {
                     let parts: Vec<&str> = key.splitn(2, ':').collect();
-                    let count = if instances.is_empty() { None } else { Some(instances.len() as u32) };
+                    let count = if instances.is_empty() {
+                        None
+                    } else {
+                        Some(instances.len() as u32)
+                    };
                     let mut regions: Vec<String> = regions_map.keys().cloned().collect();
                     regions.sort();
                     let mut region_details: Vec<RegionDetail> = regions_map
                         .into_iter()
-                        .map(|(r, (c, n))| RegionDetail { region: r, cost: c, count: n })
+                        .map(|(r, (c, n))| RegionDetail {
+                            region: r,
+                            cost: c,
+                            count: n,
+                        })
                         .collect();
-                    region_details.sort_by(|a, b| b.cost.partial_cmp(&a.cost).unwrap_or(std::cmp::Ordering::Equal));
+                    region_details.sort_by(|a, b| {
+                        b.cost
+                            .partial_cmp(&a.cost)
+                            .unwrap_or(std::cmp::Ordering::Equal)
+                    });
                     ProductCost {
                         product_code: parts.first().unwrap_or(&"unknown").to_string(),
                         product_name: parts.get(1).unwrap_or(&"Unknown").to_string(),
@@ -660,8 +698,8 @@ impl CloudBillingService {
     /// Query billing data from UCloud for a specific month
     #[cfg(feature = "ucloud")]
     pub async fn query_ucloud(billing_cycle: &str) -> Result<BillingData> {
-        let accounts = Self::load_accounts_for_provider("ucloud")
-            .or_else(|_| Self::load_legacy_ucloud())?;
+        let accounts =
+            Self::load_accounts_for_provider("ucloud").or_else(|_| Self::load_legacy_ucloud())?;
 
         if accounts.is_empty() {
             return Err(BillingError::ServiceError(
@@ -690,14 +728,22 @@ impl CloudBillingService {
             let year: i32 = parts[0].parse().unwrap_or(2026);
             let month: u32 = parts[1].parse().unwrap_or(1);
             let start = chrono::NaiveDate::from_ymd_opt(year, month, 1)
-                .ok_or_else(|| BillingError::ServiceError(format!("Invalid date: {}", billing_cycle)))?
+                .ok_or_else(|| {
+                    BillingError::ServiceError(format!("Invalid date: {}", billing_cycle))
+                })?
                 .and_hms_opt(0, 0, 0)
                 .ok_or_else(|| BillingError::ServiceError("Invalid time".to_string()))?
                 .and_utc()
                 .timestamp();
-            let (end_y, end_m) = if month == 12 { (year + 1, 1) } else { (year, month + 1) };
+            let (end_y, end_m) = if month == 12 {
+                (year + 1, 1)
+            } else {
+                (year, month + 1)
+            };
             let end = chrono::NaiveDate::from_ymd_opt(end_y, end_m, 1)
-                .ok_or_else(|| BillingError::ServiceError(format!("Invalid end date: {}-{:02}", end_y, end_m)))?
+                .ok_or_else(|| {
+                    BillingError::ServiceError(format!("Invalid end date: {}-{:02}", end_y, end_m))
+                })?
                 .and_hms_opt(0, 0, 0)
                 .ok_or_else(|| BillingError::ServiceError("Invalid time".to_string()))?
                 .and_utc()
@@ -780,8 +826,8 @@ impl CloudBillingService {
     /// Falls back to listing services (without cost data) otherwise.
     #[cfg(feature = "gcp")]
     pub async fn query_gcp(billing_cycle: &str) -> Result<BillingData> {
-        let accounts = Self::load_accounts_for_provider("gcp")
-            .or_else(|_| Self::load_legacy_gcp())?;
+        let accounts =
+            Self::load_accounts_for_provider("gcp").or_else(|_| Self::load_legacy_gcp())?;
 
         if accounts.is_empty() {
             return Err(BillingError::ServiceError(
@@ -809,11 +855,7 @@ impl CloudBillingService {
             if let Some(ref ds) = dataset {
                 // BigQuery billing export — returns actual costs
                 let items = client
-                    .query_billing_costs(
-                        billing_cycle,
-                        ds,
-                        billing_table.as_deref(),
-                    )
+                    .query_billing_costs(billing_cycle, ds, billing_table.as_deref())
                     .await?;
 
                 let mut products_map: HashMap<String, (f64, Option<f64>, Option<String>)> =
@@ -910,8 +952,7 @@ impl CloudBillingService {
 
             let client = if let Some(token) = account.secret_key {
                 cloudflare::CloudflareBillingClient::new_with_token(account_id, token)
-            } else if let (Some(key), Some(email)) =
-                (account.access_key_secret, account.secret_id)
+            } else if let (Some(key), Some(email)) = (account.access_key_secret, account.secret_id)
             {
                 cloudflare::CloudflareBillingClient::new_with_key(account_id, key, email)
             } else {
@@ -1142,11 +1183,11 @@ impl CloudBillingService {
             Ok(vec![CloudAccountConfig {
                 id: "default".to_string(),
                 name: "Default Account".to_string(),
-                access_key_id: Some(acct),       // account_id
-                access_key_secret: api_key,       // api_key (for key+email auth)
+                access_key_id: Some(acct),  // account_id
+                access_key_secret: api_key, // api_key (for key+email auth)
                 secret_access_key: None,
-                secret_id: api_email,             // api_email (for key+email auth)
-                secret_key: api_token,            // api_token (for token auth)
+                secret_id: api_email,  // api_email (for key+email auth)
+                secret_key: api_token, // api_token (for token auth)
                 public_key: None,
                 private_key: None,
                 project_id: None,

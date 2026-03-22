@@ -47,8 +47,8 @@ hex = "0.4"
 md5 = "0.7"
 urlencoding = "2.1"
 
-aws-config = { version = "1.5", optional = true }
-aws-sdk-costexplorer = { version = "1.61", optional = true }
+aws-config = { version = "1.6", optional = true }
+aws-sdk-costexplorer = { version = "1.67", optional = true }
 
 rsa = { version = "0.9", optional = true, features = ["sha2"] }
 pkcs8 = { version = "0.10", optional = true, features = ["pem"] }

@@ -62,6 +62,5 @@ impl From<reqwest::Error> for BillingError {
     }
 }
 
-
 /// Result type for billing operations
 pub type Result<T> = std::result::Result<T, BillingError>;

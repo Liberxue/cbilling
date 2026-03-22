@@ -14,8 +14,7 @@ use super::super::{BillingError, Result};
 
 const GCP_BILLING_ENDPOINT: &str = "https://cloudbilling.googleapis.com/v1";
 const GCP_TOKEN_ENDPOINT: &str = "https://oauth2.googleapis.com/token";
-const GCP_BILLING_SCOPE: &str =
-    "https://www.googleapis.com/auth/cloud-billing.readonly \
+const GCP_BILLING_SCOPE: &str = "https://www.googleapis.com/auth/cloud-billing.readonly \
      https://www.googleapis.com/auth/cloud-platform \
      https://www.googleapis.com/auth/bigquery.readonly";
 const GCP_BIGQUERY_ENDPOINT: &str = "https://bigquery.googleapis.com/bigquery/v2";
@@ -94,7 +93,10 @@ pub struct GcpCostItem {
 impl GcpBillingClient {
     /// Create a new GCP Billing Client using service account JSON
     pub async fn new(project_id: String, service_account_json: String) -> Result<Self> {
-        tracing::info!("Initializing GCP Billing client for project: {}", project_id);
+        tracing::info!(
+            "Initializing GCP Billing client for project: {}",
+            project_id
+        );
 
         let sa_key: ServiceAccountKey =
             serde_json::from_str(&service_account_json).map_err(|e| {
@@ -116,9 +118,7 @@ impl GcpBillingClient {
     /// Create from GOOGLE_APPLICATION_CREDENTIALS file path
     pub async fn new_from_credentials_file(project_id: String) -> Result<Self> {
         let creds_path = std::env::var("GOOGLE_APPLICATION_CREDENTIALS").map_err(|_| {
-            BillingError::InvalidCredentials(
-                "GOOGLE_APPLICATION_CREDENTIALS not set".to_string(),
-            )
+            BillingError::InvalidCredentials("GOOGLE_APPLICATION_CREDENTIALS not set".to_string())
         })?;
 
         let json = std::fs::read_to_string(&creds_path).map_err(|e| {
@@ -135,10 +135,7 @@ impl GcpBillingClient {
     async fn get_access_token(sa_key: &ServiceAccountKey) -> Result<String> {
         let now = Utc::now().timestamp();
         let exp = now + 3600;
-        let token_uri = sa_key
-            .token_uri
-            .as_deref()
-            .unwrap_or(GCP_TOKEN_ENDPOINT);
+        let token_uri = sa_key.token_uri.as_deref().unwrap_or(GCP_TOKEN_ENDPOINT);
 
         // Build JWT: header.claims.signature
         let header = base64url_json(&serde_json::json!({"alg": "RS256", "typ": "JWT"}))?;
@@ -204,12 +201,9 @@ impl GcpBillingClient {
             )));
         }
 
-        response
-            .json::<Value>()
-            .await
-            .map_err(|e| {
-                BillingError::SerializationError(format!("Failed to parse response: {}", e))
-            })
+        response.json::<Value>().await.map_err(|e| {
+            BillingError::SerializationError(format!("Failed to parse response: {}", e))
+        })
     }
 
     async fn call_api_post(&self, url: &str, body: &Value) -> Result<Value> {
@@ -452,9 +446,8 @@ fn base64url_encode(data: &[u8]) -> String {
 }
 
 fn base64url_json(value: &Value) -> Result<String> {
-    let bytes = serde_json::to_vec(value).map_err(|e| {
-        BillingError::SerializationError(format!("JSON encode error: {}", e))
-    })?;
+    let bytes = serde_json::to_vec(value)
+        .map_err(|e| BillingError::SerializationError(format!("JSON encode error: {}", e)))?;
     Ok(base64url_encode(&bytes))
 }
 

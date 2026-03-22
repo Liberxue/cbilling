@@ -14,8 +14,8 @@ async fn main() -> cbilling::Result<()> {
 
     println!("[Aliyun] Billing Example\n");
 
-    let access_key_id = std::env::var("ALIBABA_CLOUD_ACCESS_KEY_ID")
-        .expect("ALIBABA_CLOUD_ACCESS_KEY_ID not set");
+    let access_key_id =
+        std::env::var("ALIBABA_CLOUD_ACCESS_KEY_ID").expect("ALIBABA_CLOUD_ACCESS_KEY_ID not set");
     let access_key_secret = std::env::var("ALIBABA_CLOUD_ACCESS_KEY_SECRET")
         .expect("ALIBABA_CLOUD_ACCESS_KEY_SECRET not set");
 
@@ -52,10 +52,7 @@ async fn main() -> cbilling::Result<()> {
             }
         }
     } else {
-        eprintln!(
-            "Query failed: {} - {}",
-            response.code, response.message
-        );
+        eprintln!("Query failed: {} - {}", response.code, response.message);
     }
 
     Ok(())

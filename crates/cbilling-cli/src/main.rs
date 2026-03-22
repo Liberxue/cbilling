@@ -9,7 +9,11 @@ use crossterm::event::{DisableMouseCapture, EnableMouseCapture};
 use crossterm::execute;
 
 #[derive(Parser)]
-#[command(name = "cbilling", version, about = "Multi-cloud billing dashboard & query tool")]
+#[command(
+    name = "cbilling",
+    version,
+    about = "Multi-cloud billing dashboard & query tool"
+)]
 struct Cli {
     #[command(subcommand)]
     command: Option<Commands>,
@@ -55,7 +59,9 @@ async fn run_command(cmd: Commands) -> Result<(), Box<dyn std::error::Error>> {
         Commands::Providers => {
             let providers = CloudBillingService::get_configured_providers();
             if providers.is_empty() {
-                println!("No providers configured. Set environment variables for your cloud accounts.");
+                println!(
+                    "No providers configured. Set environment variables for your cloud accounts."
+                );
             } else {
                 println!("{:<16} STATUS", "PROVIDER");
                 println!("{}", "-".repeat(30));
@@ -131,7 +137,11 @@ async fn run_command(cmd: Commands) -> Result<(), Box<dyn std::error::Error>> {
                 return Ok(());
             }
 
-            println!("Querying {} provider(s) for {}...\n", providers.len(), cycle);
+            println!(
+                "Querying {} provider(s) for {}...\n",
+                providers.len(),
+                cycle
+            );
 
             println!(
                 "{:<16} {:>14} {:<5} {:>8}",

@@ -32,9 +32,7 @@ impl EventHandler {
             let mut stream = EventStream::new();
             while let Some(Ok(event)) = stream.next().await {
                 let app_event = match event {
-                    Event::Key(key) if key.kind == KeyEventKind::Press => {
-                        Some(AppEvent::Key(key))
-                    }
+                    Event::Key(key) if key.kind == KeyEventKind::Press => Some(AppEvent::Key(key)),
                     Event::Mouse(mouse) => match mouse.kind {
                         MouseEventKind::ScrollUp => Some(AppEvent::ScrollUp(3)),
                         MouseEventKind::ScrollDown => Some(AppEvent::ScrollDown(3)),

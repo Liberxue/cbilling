@@ -386,10 +386,7 @@ mod tests {
 
     #[test]
     fn test_client_creation() {
-        let client = AliyunBillingClient::new(
-            "test_id".to_string(),
-            "test_secret".to_string(),
-        );
+        let client = AliyunBillingClient::new("test_id".to_string(), "test_secret".to_string());
         assert_eq!(client.access_key_id, "test_id");
     }
 
