@@ -1,0 +1,95 @@
+[workspace]
+members = [".", "crates/cbilling-cli"]
+
+[package]
+name = "cbilling"
+version = "0.1.0"
+edition = "2021"
+license = "Apache-2.0"
+description = "Multi-cloud billing SDK for Rust — query billing data from AWS, GCP, Aliyun, Tencent Cloud, Volcengine, UCloud, Cloudflare"
+homepage = "https://github.com/Liberxue/cbilling"
+repository = "https://github.com/Liberxue/cbilling"
+documentation = "https://docs.rs/cbilling"
+readme = "README.md"
+keywords = ["cloud", "billing", "aws", "gcp", "multi-cloud"]
+categories = ["api-bindings", "finance"]
+rust-version = "1.75"
+exclude = ["crates/", ".github/", "examples/"]
+
+[features]
+default = ["aliyun", "tencentcloud", "aws", "volcengine", "ucloud", "gcp", "cloudflare"]
+
+aliyun = []
+tencentcloud = []
+aws = ["dep:aws-config", "dep:aws-sdk-costexplorer"]
+volcengine = []
+ucloud = []
+gcp = ["dep:rsa", "dep:pkcs8"]
+cloudflare = []
+azure = []
+
+all-providers = ["aliyun", "tencentcloud", "aws", "volcengine", "ucloud", "gcp", "cloudflare"]
+
+[dependencies]
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+chrono = { version = "0.4", features = ["serde"] }
+tokio = { version = "1.0", features = ["rt-multi-thread", "macros", "sync"] }
+tracing = "0.1"
+
+reqwest = { version = "0.12", features = ["json", "rustls-tls"], default-features = false }
+
+hmac = "0.12"
+sha1 = "0.10"
+sha2 = "0.10"
+base64 = "0.22"
+hex = "0.4"
+md5 = "0.7"
+urlencoding = "2.1"
+
+aws-config = { version = "1.5", optional = true }
+aws-sdk-costexplorer = { version = "1.61", optional = true }
+
+rsa = { version = "0.9", optional = true, features = ["sha2"] }
+pkcs8 = { version = "0.10", optional = true, features = ["pem"] }
+
+[dev-dependencies]
+tokio-test = "0.4"
+mockito = "1.0"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+chrono = "0.4"
+
+[[example]]
+name = "aliyun_billing"
+path = "examples/aliyun_billing.rs"
+required-features = ["aliyun"]
+
+[[example]]
+name = "aws_billing"
+path = "examples/aws_billing.rs"
+required-features = ["aws"]
+
+[[example]]
+name = "tencentcloud_billing"
+path = "examples/tencentcloud_billing.rs"
+required-features = ["tencentcloud"]
+
+[[example]]
+name = "volcengine_billing"
+path = "examples/volcengine_billing.rs"
+required-features = ["volcengine"]
+
+[[example]]
+name = "ucloud_billing"
+path = "examples/ucloud_billing.rs"
+required-features = ["ucloud"]
+
+[[example]]
+name = "gcp_billing"
+path = "examples/gcp_billing.rs"
+required-features = ["gcp"]
+
+[[example]]
+name = "cloudflare_billing"
+path = "examples/cloudflare_billing.rs"
+required-features = ["cloudflare"]
