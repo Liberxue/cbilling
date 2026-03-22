@@ -1,5 +1,7 @@
 # cbilling
 
+<div align="center">
+
 [![CI](https://github.com/Liberxue/cbilling/actions/workflows/ci.yml/badge.svg)](https://github.com/Liberxue/cbilling/actions/workflows/ci.yml)
 [![crates.io](https://img.shields.io/crates/v/cbilling.svg)](https://crates.io/crates/cbilling)
 [![docs.rs](https://docs.rs/cbilling/badge.svg)](https://docs.rs/cbilling)
@@ -7,12 +9,16 @@
 
 Multi-cloud billing SDK for Rust. Query billing data from 7 cloud providers through a unified API.
 
+</div>
+
 > Looking for the terminal UI / CLI tool? See **[cbilling-cli](crates/cbilling-cli/README.md)**.
 
 ## Supported Providers
 
+<div align="center">
+
 | Provider | Feature | API | Currency |
-|----------|---------|-----|----------|
+|:--------:|:-------:|:---:|:--------:|
 | Alibaba Cloud | `aliyun` | BSS OpenAPI | CNY |
 | AWS | `aws` | Cost Explorer | USD |
 | Tencent Cloud | `tencentcloud` | Billing API v3 | CNY |
@@ -20,6 +26,8 @@ Multi-cloud billing SDK for Rust. Query billing data from 7 cloud providers thro
 | UCloud | `ucloud` | UBill API | CNY |
 | Google Cloud | `gcp` | Cloud Billing + BigQuery | USD |
 | Cloudflare | `cloudflare` | Billing API v4 | USD |
+
+</div>
 
 ## Install
 
@@ -163,43 +171,51 @@ pub struct RegionDetail {
 
 Each provider reads credentials from environment variables:
 
+<div align="center">
+
 | Provider | Environment Variables |
-|----------|----------------------|
-| Aliyun | `ALIBABA_CLOUD_ACCESS_KEY_ID`, `ALIBABA_CLOUD_ACCESS_KEY_SECRET` |
-| AWS | `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY` (or `~/.aws/credentials`) |
-| Tencent Cloud | `TENCENTCLOUD_SECRET_ID`, `TENCENTCLOUD_SECRET_KEY` |
-| Volcengine | `VOLCENGINE_ACCESS_KEY_ID`, `VOLCENGINE_SECRET_ACCESS_KEY` |
-| UCloud | `UCLOUD_PUBLIC_KEY`, `UCLOUD_PRIVATE_KEY`, `UCLOUD_PROJECT_ID` |
-| GCP | `GCP_PROJECT_ID` + `GCP_SERVICE_ACCOUNT_JSON` or `GOOGLE_APPLICATION_CREDENTIALS` |
-| Cloudflare | `CLOUDFLARE_ACCOUNT_ID`, `CLOUDFLARE_API_TOKEN` |
+|:--------:|:--------------------:|
+| Aliyun | `ALIBABA_CLOUD_ACCESS_KEY_ID` `ALIBABA_CLOUD_ACCESS_KEY_SECRET` |
+| AWS | `AWS_ACCESS_KEY_ID` `AWS_SECRET_ACCESS_KEY` |
+| Tencent Cloud | `TENCENTCLOUD_SECRET_ID` `TENCENTCLOUD_SECRET_KEY` |
+| Volcengine | `VOLCENGINE_ACCESS_KEY_ID` `VOLCENGINE_SECRET_ACCESS_KEY` |
+| UCloud | `UCLOUD_PUBLIC_KEY` `UCLOUD_PRIVATE_KEY` `UCLOUD_PROJECT_ID` |
+| GCP | `GCP_PROJECT_ID` + `GCP_SERVICE_ACCOUNT_JSON` |
+| Cloudflare | `CLOUDFLARE_ACCOUNT_ID` `CLOUDFLARE_API_TOKEN` |
+
+</div>
 
 Multi-account JSON config is also supported via `<PROVIDER>_ACCOUNTS` env vars. See [examples/](examples/).
 
 ## Feature Flags
 
+<div align="center">
+
 | Feature | Description |
-|---------|-------------|
+|:-------:|:-----------:|
 | `aliyun` | Alibaba Cloud (default) |
 | `tencentcloud` | Tencent Cloud (default) |
-| `aws` | AWS Cost Explorer (default, adds `aws-sdk-costexplorer`) |
+| `aws` | AWS Cost Explorer (default) |
 | `volcengine` | Volcengine (default) |
 | `ucloud` | UCloud (default) |
-| `gcp` | Google Cloud (default, adds `rsa` + `pkcs8`) |
+| `gcp` | Google Cloud (default) |
 | `cloudflare` | Cloudflare (default) |
 | `all-providers` | All of the above |
+
+</div>
 
 ## Project Structure
 
 ```
 cbilling/
-  src/                        # Library crate (cbilling)
-    providers/                # One module per cloud provider
-    service.rs                # Unified query API
-    models.rs                 # Shared data types
-    error.rs                  # Error types
+  src/                          # Library crate (cbilling)
+    providers/                  # One module per cloud provider
+    service.rs                  # Unified query API
+    models.rs                   # Shared data types
+    error.rs                    # Error types
   crates/
-    cbilling-cli/        # CLI + TUI crate (cbilling-cli)
-  examples/                   # Per-provider usage examples
+    cbilling-cli/               # CLI + TUI crate (cbilling-cli)
+  examples/                     # Per-provider usage examples
 ```
 
 ## Examples

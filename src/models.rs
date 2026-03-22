@@ -119,17 +119,22 @@ impl Provider {
         }
     }
 
-    pub fn from_str(s: &str) -> Option<Self> {
+}
+
+impl std::str::FromStr for Provider {
+    type Err = String;
+
+    fn from_str(s: &str) -> std::result::Result<Self, Self::Err> {
         match s.to_lowercase().as_str() {
-            "aliyun" => Some(Provider::Aliyun),
-            "tencentcloud" | "tencent" => Some(Provider::TencentCloud),
-            "aws" => Some(Provider::AWS),
-            "azure" => Some(Provider::Azure),
-            "volcengine" => Some(Provider::Volcengine),
-            "ucloud" => Some(Provider::UCloud),
-            "gcp" | "google" | "googlecloud" => Some(Provider::Gcp),
-            "cloudflare" | "cf" => Some(Provider::Cloudflare),
-            _ => None,
+            "aliyun" => Ok(Provider::Aliyun),
+            "tencentcloud" | "tencent" => Ok(Provider::TencentCloud),
+            "aws" => Ok(Provider::AWS),
+            "azure" => Ok(Provider::Azure),
+            "volcengine" => Ok(Provider::Volcengine),
+            "ucloud" => Ok(Provider::UCloud),
+            "gcp" | "google" | "googlecloud" => Ok(Provider::Gcp),
+            "cloudflare" | "cf" => Ok(Provider::Cloudflare),
+            _ => Err(format!("unknown provider: {}", s)),
         }
     }
 }
@@ -162,8 +167,8 @@ mod tests {
     #[test]
     fn test_provider_enum() {
         assert_eq!(Provider::Aliyun.as_str(), "aliyun");
-        assert_eq!(Provider::from_str("aws"), Some(Provider::AWS));
-        assert_eq!(Provider::from_str("tencent"), Some(Provider::TencentCloud));
-        assert_eq!(Provider::from_str("unknown"), None);
+        assert_eq!("aws".parse::<Provider>().unwrap(), Provider::AWS);
+        assert_eq!("tencent".parse::<Provider>().unwrap(), Provider::TencentCloud);
+        assert!("unknown".parse::<Provider>().is_err());
     }
 }

@@ -154,8 +154,7 @@ fn render_tabs(frame: &mut Frame, app: &App, area: Rect) {
             Style::default().fg(C_TEXT).add_modifier(Modifier::DIM),
         ));
     }
-    for i in vis_start..vis_end {
-        let (label, is_active) = &tab_labels[i];
+    for (i, (label, is_active)) in tab_labels.iter().enumerate().skip(vis_start).take(vis_end - vis_start) {
         let style = if *is_active {
             Style::default().fg(C_ACCENT).add_modifier(Modifier::BOLD)
         } else {

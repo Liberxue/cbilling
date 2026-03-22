@@ -13,7 +13,7 @@ documentation = "https://docs.rs/cbilling"
 readme = "README.md"
 keywords = ["cloud", "billing", "aws", "gcp", "multi-cloud"]
 categories = ["api-bindings", "finance"]
-rust-version = "1.75"
+rust-version = "1.85"
 exclude = ["crates/", ".github/", "examples/"]
 
 [features]

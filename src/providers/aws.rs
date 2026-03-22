@@ -86,6 +86,7 @@ impl AwsBillingClient {
     /// 1. Environment variables (AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY)
     /// 2. ~/.aws/credentials file
     /// 3. IAM role (for EC2/ECS instances)
+    ///
     /// Note: Cost Explorer API is a global service that must use us-east-1 region
     pub async fn new_with_default_credentials(_region: String) -> Result<Self> {
         // AWS Cost Explorer is a global service that MUST use us-east-1

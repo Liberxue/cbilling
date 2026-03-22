@@ -9,7 +9,7 @@ repository = "https://github.com/Liberxue/cbilling"
 readme = "README.md"
 keywords = ["cloud", "billing", "tui", "dashboard", "terminal"]
 categories = ["command-line-utilities", "finance"]
-rust-version = "1.75"
+rust-version = "1.85"
 
 [[bin]]
 name = "cbilling"

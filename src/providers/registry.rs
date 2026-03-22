@@ -8,6 +8,7 @@
 use crate::error::Result;
 
 /// Initialize provider registry
+#[allow(clippy::vec_init_then_push)]
 pub async fn init() -> Result<()> {
     tracing::info!("Initializing cloud billing provider registry");
 

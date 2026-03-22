@@ -9,6 +9,16 @@
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
+/// Aggregator: product_key -> (total_cost, unique_instance_ids, region -> (cost, count))
+type ProductAggregator = HashMap<
+    String,
+    (
+        f64,
+        std::collections::HashSet<String>,
+        HashMap<String, (f64, u32)>,
+    ),
+>;
+
 use crate::error::{BillingError, Result};
 
 #[cfg(feature = "aliyun")]
@@ -228,15 +238,7 @@ impl CloudBillingService {
             // Paginate through all pages, collecting per-region detail
             let page_size = 300;
             let mut page_num = 1;
-            // key: "code:name", value: (total_cost, instance_ids, region -> (cost, count))
-            let mut products_map: HashMap<
-                String,
-                (
-                    f64,
-                    std::collections::HashSet<String>,
-                    HashMap<String, (f64, u32)>,
-                ),
-            > = HashMap::new();
+            let mut products_map: ProductAggregator = HashMap::new();
 
             loop {
                 let response = client
@@ -569,14 +571,7 @@ impl CloudBillingService {
 
             let limit = 100;
             let mut offset = 0;
-            let mut products_map: HashMap<
-                String,
-                (
-                    f64,
-                    std::collections::HashSet<String>,
-                    HashMap<String, (f64, u32)>,
-                ),
-            > = HashMap::new();
+            let mut products_map: ProductAggregator = HashMap::new();
 
             loop {
                 let response = client

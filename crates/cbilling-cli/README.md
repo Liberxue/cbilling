@@ -124,8 +124,10 @@ TOTAL                   4332.39 USD
 
 ## TUI Keyboard Shortcuts
 
+<div align="center">
+
 | Key | Action |
-|-----|--------|
+|:---:|:------:|
 | `j` / `k` | Navigate up/down |
 | `Ctrl+f` / `Ctrl+b` | Page down/up |
 | Mouse scroll | Scroll table |
@@ -140,6 +142,8 @@ TOTAL                   4332.39 USD
 | `r` | Refresh |
 | `?` | Help |
 | `q` | Quit |
+
+</div>
 
 ## Configuration
 

@@ -83,7 +83,7 @@ async fn run_command(cmd: Commands) -> Result<(), Box<dyn std::error::Error>> {
 
             // Print table
             println!(
-                "{:<4} {:<30} {:<20} {:>12} {:>6} {}",
+                "{:<4} {:<30} {:<20} {:>12} {:>6} {:<10}",
                 "#", "PRODUCT", "CODE", "COST", "QTY", "REGIONS"
             );
             println!("{}", "-".repeat(90));
