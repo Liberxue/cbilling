@@ -9,16 +9,16 @@
 
 Multi-cloud billing SDK for Rust. Query billing data from 7 cloud providers through a unified API.
 
+![cbilling in action](assets/demo.gif)
+
 </div>
 
 > Looking for the terminal UI / CLI tool? See **[cbilling-cli](crates/cbilling-cli/README.md)**.
 
 ## Supported Providers
 
-<div align="center">
-
 | Provider | Feature | API | Currency |
-|:--------:|:-------:|:---:|:--------:|
+|:--------|:-------|:---|:--------|
 | Alibaba Cloud | `aliyun` | BSS OpenAPI | CNY |
 | AWS | `aws` | Cost Explorer | USD |
 | Tencent Cloud | `tencentcloud` | Billing API v3 | CNY |
@@ -26,8 +26,6 @@ Multi-cloud billing SDK for Rust. Query billing data from 7 cloud providers thro
 | UCloud | `ucloud` | UBill API | CNY |
 | Google Cloud | `gcp` | Cloud Billing + BigQuery | USD |
 | Cloudflare | `cloudflare` | Billing API v4 | USD |
-
-</div>
 
 ## Install
 
@@ -171,10 +169,8 @@ pub struct RegionDetail {
 
 Each provider reads credentials from environment variables:
 
-<div align="center">
-
 | Provider | Environment Variables |
-|:--------:|:--------------------:|
+|:--------|:--------------------|
 | Aliyun | `ALIBABA_CLOUD_ACCESS_KEY_ID` `ALIBABA_CLOUD_ACCESS_KEY_SECRET` |
 | AWS | `AWS_ACCESS_KEY_ID` `AWS_SECRET_ACCESS_KEY` |
 | Tencent Cloud | `TENCENTCLOUD_SECRET_ID` `TENCENTCLOUD_SECRET_KEY` |
@@ -183,16 +179,12 @@ Each provider reads credentials from environment variables:
 | GCP | `GCP_PROJECT_ID` + `GCP_SERVICE_ACCOUNT_JSON` |
 | Cloudflare | `CLOUDFLARE_ACCOUNT_ID` `CLOUDFLARE_API_TOKEN` |
 
-</div>
-
 Multi-account JSON config is also supported via `<PROVIDER>_ACCOUNTS` env vars. See [examples/](examples/).
 
 ## Feature Flags
 
-<div align="center">
-
 | Feature | Description |
-|:-------:|:-----------:|
+|:-------|:-----------|
 | `aliyun` | Alibaba Cloud (default) |
 | `tencentcloud` | Tencent Cloud (default) |
 | `aws` | AWS Cost Explorer (default) |
@@ -201,8 +193,6 @@ Multi-account JSON config is also supported via `<PROVIDER>_ACCOUNTS` env vars. 
 | `gcp` | Google Cloud (default) |
 | `cloudflare` | Cloudflare (default) |
 | `all-providers` | All of the above |
-
-</div>
 
 ## Project Structure
 

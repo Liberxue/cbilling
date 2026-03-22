@@ -5,6 +5,12 @@
 
 Terminal dashboard and CLI for multi-cloud billing — query, compare, and export billing data from AWS, GCP, Aliyun, Tencent Cloud, Volcengine, UCloud, and Cloudflare.
 
+<div align="center">
+
+![cbilling in action](../../assets/demo.gif)
+
+</div>
+
 ## Install
 
 ```bash
@@ -22,6 +28,7 @@ cbilling
 ```
 
 Launches an interactive terminal UI with:
+
 - Provider tabs with real-time cost totals
 - Bar chart showing cost distribution across providers
 - Sortable product table with MoM (month-over-month) comparison
@@ -62,6 +69,7 @@ Options:
 ```
 
 **query**
+
 ```
 cbilling query <PROVIDER> [OPTIONS]
 
@@ -74,6 +82,7 @@ Options:
 ```
 
 **summary**
+
 ```
 cbilling summary [OPTIONS]
 
@@ -124,10 +133,8 @@ TOTAL                   4332.39 USD
 
 ## TUI Keyboard Shortcuts
 
-<div align="center">
-
 | Key | Action |
-|:---:|:------:|
+|:---|:------|
 | `j` / `k` | Navigate up/down |
 | `Ctrl+f` / `Ctrl+b` | Page down/up |
 | Mouse scroll | Scroll table |
@@ -142,8 +149,6 @@ TOTAL                   4332.39 USD
 | `r` | Refresh |
 | `?` | Help |
 | `q` | Quit |
-
-</div>
 
 ## Configuration
 
