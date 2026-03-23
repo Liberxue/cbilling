@@ -118,7 +118,6 @@ impl Provider {
             Provider::Cloudflare => "cloudflare",
         }
     }
-
 }
 
 impl std::str::FromStr for Provider {
@@ -168,7 +167,10 @@ mod tests {
     fn test_provider_enum() {
         assert_eq!(Provider::Aliyun.as_str(), "aliyun");
         assert_eq!("aws".parse::<Provider>().unwrap(), Provider::AWS);
-        assert_eq!("tencent".parse::<Provider>().unwrap(), Provider::TencentCloud);
+        assert_eq!(
+            "tencent".parse::<Provider>().unwrap(),
+            Provider::TencentCloud
+        );
         assert!("unknown".parse::<Provider>().is_err());
     }
 }
