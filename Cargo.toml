@@ -3,7 +3,7 @@ members = [".", "crates/cbilling-cli"]
 
 [package]
 name = "cbilling"
-version = "0.2.0"
+version = "0.3.0"
 edition = "2021"
 license = "Apache-2.0"
 description = "Multi-cloud billing SDK for Rust — query billing data from AWS, GCP, Aliyun, Tencent Cloud, Volcengine, UCloud, Cloudflare"

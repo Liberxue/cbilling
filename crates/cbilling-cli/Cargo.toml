@@ -1,6 +1,6 @@
 [package]
 name = "cbilling-cli"
-version = "0.2.0"
+version = "0.3.0"
 edition = "2021"
 license = "Apache-2.0"
 description = "Terminal UI for multi-cloud billing — htop/k9s style dashboard"
@@ -16,7 +16,7 @@ name = "cbilling"
 path = "src/main.rs"
 
 [dependencies]
-cbilling = { version = "0.2.0", path = "../..", features = ["all-providers"] }
+cbilling = { version = "0.3.0", path = "../..", features = ["all-providers"] }
 ratatui = "0.30"
 crossterm = { version = "0.28", features = ["event-stream"] }
 tokio = { version = "1.0", features = ["full"] }
