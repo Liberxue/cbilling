@@ -3,13 +3,13 @@
 #
 # Usage:
 #   curl -fsSL https://raw.githubusercontent.com/Liberxue/cbilling/main/scripts/install.sh | bash
-#   curl -fsSL ... | bash -s -- --to ~/bin      # custom install dir
-#   curl -fsSL ... | bash -s -- --version v0.2.0 # specific version
+#   curl -fsSL ... | bash -s -- --to /usr/local/bin  # custom install dir
+#   curl -fsSL ... | bash -s -- --version v0.2.0     # specific version
 set -euo pipefail
 
 REPO="Liberxue/cbilling"
 BIN_NAME="cbilling"
-INSTALL_DIR="/usr/local/bin"
+INSTALL_DIR="${HOME}/.local/bin"
 VERSION=""
 
 while [[ $# -gt 0 ]]; do
@@ -59,17 +59,21 @@ trap 'rm -rf "$TMPDIR"' EXIT
 curl -fsSL "$URL" -o "${TMPDIR}/${FILENAME}"
 tar xzf "${TMPDIR}/${FILENAME}" -C "$TMPDIR"
 
-# Install — use sudo if needed for system directories
-mkdir -p "$INSTALL_DIR" 2>/dev/null || sudo mkdir -p "$INSTALL_DIR"
-if [[ -w "$INSTALL_DIR" ]]; then
-    mv "${TMPDIR}/${BIN_NAME}" "${INSTALL_DIR}/${BIN_NAME}"
-    chmod +x "${INSTALL_DIR}/${BIN_NAME}"
-else
-    sudo mv "${TMPDIR}/${BIN_NAME}" "${INSTALL_DIR}/${BIN_NAME}"
-    sudo chmod +x "${INSTALL_DIR}/${BIN_NAME}"
-fi
+# Install
+mkdir -p "$INSTALL_DIR"
+mv "${TMPDIR}/${BIN_NAME}" "${INSTALL_DIR}/${BIN_NAME}"
+chmod +x "${INSTALL_DIR}/${BIN_NAME}"
 
 echo ""
 echo "✓ ${BIN_NAME} ${VERSION} installed to ${INSTALL_DIR}/${BIN_NAME}"
-echo ""
+
+# Check if INSTALL_DIR is in PATH
+if ! echo "$PATH" | tr ':' '\n' | grep -qx "$INSTALL_DIR"; then
+    echo ""
+    echo "⚠ ${INSTALL_DIR} is not in your PATH. Add it with:"
+    echo ""
+    echo "  echo 'export PATH=\"${INSTALL_DIR}:\$PATH\"' >> ~/.zshrc && source ~/.zshrc"
+    echo ""
+fi
+
 echo "Run 'cbilling' to launch the TUI dashboard."
