@@ -307,6 +307,112 @@ impl AwsBillingClient {
     }
 }
 
+// ── BillingProvider adapter ──────────────────────────────────────────────
+
+use super::traits::{BillingProvider, RawBillItem};
+use crate::service::CloudAccountConfig;
+
+/// Adapter that implements [`BillingProvider`] for AWS.
+pub struct AwsBillingAdapter {
+    client: AwsBillingClient,
+}
+
+impl AwsBillingAdapter {
+    /// Create an adapter from a [`CloudAccountConfig`].
+    ///
+    /// This is async because `AwsBillingClient::new()` is async.
+    /// If explicit credentials are provided, uses them; otherwise falls back
+    /// to the default credential chain.
+    pub async fn from_config(config: &CloudAccountConfig) -> Result<Self> {
+        let region = config
+            .region
+            .clone()
+            .unwrap_or_else(|| "us-east-1".to_string());
+
+        let secret = config
+            .secret_access_key
+            .as_ref()
+            .or(config.access_key_secret.as_ref());
+        let client = if let (Some(ak), Some(sk)) = (&config.access_key_id, secret) {
+            AwsBillingClient::new(ak.clone(), sk.clone(), region).await?
+        } else {
+                AwsBillingClient::new_with_default_credentials(region).await?
+            };
+
+        Ok(Self { client })
+    }
+}
+
+impl BillingProvider for AwsBillingAdapter {
+    fn provider_name(&self) -> &'static str {
+        "aws"
+    }
+
+    fn currency(&self) -> &'static str {
+        "USD"
+    }
+
+    async fn query_bill_items(&self, billing_cycle: &str) -> Result<Vec<RawBillItem>> {
+        // Convert "2026-03" to date range
+        let start_date = format!("{}-01", billing_cycle);
+        let end_date = {
+            let parts: Vec<&str> = billing_cycle.split('-').collect();
+            let year: i32 = parts[0].parse().unwrap_or(2026);
+            let month: u32 = parts[1].parse().unwrap_or(1);
+            if month == 12 {
+                format!("{}-01-01", year + 1)
+            } else {
+                format!("{}-{:02}-01", year, month + 1)
+            }
+        };
+
+        let result = self
+            .client
+            .get_cost_and_usage(
+                &start_date,
+                &end_date,
+                "MONTHLY",
+                vec!["UnblendedCost"],
+                Some(vec![("DIMENSION", "SERVICE")]),
+            )
+            .await?;
+
+        let mut items = Vec::new();
+
+        if let Some(results) = result.results_by_time {
+            for period in results {
+                if let Some(groups) = period.groups {
+                    for group in groups {
+                        let service = group.keys.first().cloned().unwrap_or_default();
+                        let cost = group
+                            .metrics
+                            .get("UnblendedCost")
+                            .and_then(|v| v.get("Amount"))
+                            .and_then(|v| v.as_str())
+                            .and_then(|s| s.parse::<f64>().ok())
+                            .unwrap_or(0.0);
+                        items.push(RawBillItem {
+                            product_name: service.clone(),
+                            product_code: service,
+                            cost,
+                            region: String::new(),
+                            instance_id: String::new(),
+                            usage: None,
+                            unit: None,
+                        });
+                    }
+                }
+            }
+        }
+
+        Ok(items)
+    }
+
+    async fn test_credentials(&self) -> Result<bool> {
+        self.client.check_access().await
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

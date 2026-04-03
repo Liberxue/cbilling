@@ -310,6 +310,81 @@ impl TencentCloudBillingClient {
     }
 }
 
+// ── BillingProvider adapter ──────────────────────────────────────────────
+
+use super::traits::{BillingProvider, RawBillItem};
+use crate::service::CloudAccountConfig;
+
+/// Adapter that implements [`BillingProvider`] for Tencent Cloud.
+pub struct TencentCloudBillingAdapter {
+    client: TencentCloudBillingClient,
+}
+
+impl TencentCloudBillingAdapter {
+    /// Create an adapter from a [`CloudAccountConfig`].
+    pub fn from_config(config: &CloudAccountConfig) -> Result<Self> {
+        let secret_id = config
+            .secret_id
+            .clone()
+            .ok_or_else(|| BillingError::ServiceError("Missing secret_id".to_string()))?;
+        let secret_key = config
+            .secret_key
+            .clone()
+            .ok_or_else(|| BillingError::ServiceError("Missing secret_key".to_string()))?;
+        let region = config
+            .region
+            .clone()
+            .unwrap_or_else(|| "ap-guangzhou".to_string());
+        Ok(Self {
+            client: TencentCloudBillingClient::new(secret_id, secret_key, region),
+        })
+    }
+}
+
+impl BillingProvider for TencentCloudBillingAdapter {
+    fn provider_name(&self) -> &'static str {
+        "tencentcloud"
+    }
+
+    fn currency(&self) -> &'static str {
+        "CNY"
+    }
+
+    async fn query_bill_items(&self, billing_cycle: &str) -> Result<Vec<RawBillItem>> {
+        let summary = self.client.get_bill_summary(billing_cycle).await?;
+        let mut items = Vec::new();
+
+        if let Some(overview) = summary.response.summary_overview {
+            for item in &overview {
+                let cost: f64 = item.real_total_cost.parse().unwrap_or(0.0);
+                let name = item
+                    .business_code_name
+                    .clone()
+                    .unwrap_or_else(|| "Unknown".to_string());
+                let code = item
+                    .business_code
+                    .clone()
+                    .unwrap_or_else(|| "unknown".to_string());
+                items.push(RawBillItem {
+                    product_name: name,
+                    product_code: code,
+                    cost,
+                    region: String::new(),
+                    instance_id: String::new(),
+                    usage: None,
+                    unit: None,
+                });
+            }
+        }
+
+        Ok(items)
+    }
+
+    async fn test_credentials(&self) -> Result<bool> {
+        self.client.test_credentials().await
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

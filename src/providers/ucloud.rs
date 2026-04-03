@@ -225,6 +225,98 @@ impl UCloudBillingClient {
     }
 }
 
+// ── BillingProvider adapter ──────────────────────────────────────────────
+
+use super::traits::{BillingProvider, RawBillItem};
+use crate::service::CloudAccountConfig;
+
+/// Adapter that implements [`BillingProvider`] for UCloud.
+pub struct UCloudBillingAdapter {
+    client: UCloudBillingClient,
+}
+
+impl UCloudBillingAdapter {
+    /// Create an adapter from a [`CloudAccountConfig`].
+    pub fn from_config(config: &CloudAccountConfig) -> Result<Self> {
+        let public_key = config
+            .public_key
+            .clone()
+            .ok_or_else(|| BillingError::ServiceError("Missing public_key".to_string()))?;
+        let private_key = config
+            .private_key
+            .clone()
+            .ok_or_else(|| BillingError::ServiceError("Missing private_key".to_string()))?;
+        let project_id = config
+            .project_id
+            .clone()
+            .ok_or_else(|| BillingError::ServiceError("Missing project_id".to_string()))?;
+        Ok(Self {
+            client: UCloudBillingClient::new(public_key, private_key, project_id),
+        })
+    }
+}
+
+impl BillingProvider for UCloudBillingAdapter {
+    fn provider_name(&self) -> &'static str {
+        "ucloud"
+    }
+
+    fn currency(&self) -> &'static str {
+        "CNY"
+    }
+
+    async fn query_bill_items(&self, billing_cycle: &str) -> Result<Vec<RawBillItem>> {
+        let limit = 100;
+        let mut offset = 0;
+        let mut items = Vec::new();
+
+        loop {
+            let response = self
+                .client
+                .query_bill_list(billing_cycle, Some(offset), Some(limit))
+                .await?;
+
+            let api_total = response.total_count.unwrap_or(0);
+
+            if let Some(bill_items) = response.items {
+                if bill_items.is_empty() {
+                    break;
+                }
+                for item in &bill_items {
+                    let cost = item.amount_real.or(item.amount).unwrap_or(0.0);
+                    let name = item
+                        .product_name
+                        .clone()
+                        .or_else(|| item.resource_type.clone())
+                        .unwrap_or_else(|| "Unknown".to_string());
+                    items.push(RawBillItem {
+                        product_name: name.clone(),
+                        product_code: name,
+                        cost,
+                        region: String::new(),
+                        instance_id: String::new(),
+                        usage: None,
+                        unit: None,
+                    });
+                }
+            } else {
+                break;
+            }
+
+            offset += limit;
+            if offset >= api_total {
+                break;
+            }
+        }
+
+        Ok(items)
+    }
+
+    async fn test_credentials(&self) -> Result<bool> {
+        self.client.test_credentials().await
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

@@ -351,6 +351,113 @@ impl VolcengineBillingClient {
     }
 }
 
+// ── BillingProvider adapter ──────────────────────────────────────────────
+
+use super::traits::{BillingProvider, RawBillItem};
+use crate::service::CloudAccountConfig;
+
+/// Adapter that implements [`BillingProvider`] for Volcengine.
+pub struct VolcengineBillingAdapter {
+    client: VolcengineBillingClient,
+}
+
+impl VolcengineBillingAdapter {
+    /// Create an adapter from a [`CloudAccountConfig`].
+    pub fn from_config(config: &CloudAccountConfig) -> Result<Self> {
+        let access_key_id = config
+            .access_key_id
+            .clone()
+            .ok_or_else(|| BillingError::ServiceError("Missing access_key_id".to_string()))?;
+        let secret_access_key = config
+            .secret_access_key
+            .clone()
+            .or_else(|| config.access_key_secret.clone())
+            .ok_or_else(|| BillingError::ServiceError("Missing secret_access_key".to_string()))?;
+        let region = config
+            .region
+            .clone()
+            .unwrap_or_else(|| "cn-beijing".to_string());
+        Ok(Self {
+            client: VolcengineBillingClient::new(access_key_id, secret_access_key, region),
+        })
+    }
+}
+
+impl BillingProvider for VolcengineBillingAdapter {
+    fn provider_name(&self) -> &'static str {
+        "volcengine"
+    }
+
+    fn currency(&self) -> &'static str {
+        "CNY"
+    }
+
+    async fn query_bill_items(&self, billing_cycle: &str) -> Result<Vec<RawBillItem>> {
+        let limit = 100;
+        let mut offset = 0;
+        let mut items = Vec::new();
+
+        loop {
+            let response = self
+                .client
+                .list_bill_detail(billing_cycle, Some(limit), Some(offset))
+                .await?;
+
+            let result = match response.result {
+                Some(r) => r,
+                None => break,
+            };
+            let api_total = result.total.unwrap_or(0);
+
+            if let Some(bill_items) = result.list {
+                if bill_items.is_empty() {
+                    break;
+                }
+                for item in &bill_items {
+                    let cost: f64 = item
+                        .payable_amount
+                        .as_deref()
+                        .and_then(|s| s.parse().ok())
+                        .unwrap_or(0.0);
+                    let name = item
+                        .product_zh
+                        .clone()
+                        .unwrap_or_else(|| "Unknown".to_string());
+                    let code = item
+                        .product
+                        .clone()
+                        .unwrap_or_else(|| "unknown".to_string());
+                    let region = item.region.clone().unwrap_or_default();
+                    let instance_id = item.instance_id.clone().unwrap_or_default();
+
+                    items.push(RawBillItem {
+                        product_name: name,
+                        product_code: code,
+                        cost,
+                        region,
+                        instance_id,
+                        usage: None,
+                        unit: None,
+                    });
+                }
+            } else {
+                break;
+            }
+
+            offset += limit;
+            if (offset as i64) >= api_total {
+                break;
+            }
+        }
+
+        Ok(items)
+    }
+
+    async fn test_credentials(&self) -> Result<bool> {
+        self.client.test_credentials().await
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
