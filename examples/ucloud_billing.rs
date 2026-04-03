@@ -21,21 +21,12 @@ async fn main() -> cbilling::Result<()> {
 
     let client = UCloudBillingClient::new(public_key, private_key, project_id);
 
-    let now = chrono::Utc::now().timestamp();
-    let thirty_days_ago = now - 30 * 86400;
+    let billing_cycle = chrono::Utc::now().format("%Y-%m").to_string();
 
-    println!(
-        "Querying bill data from {} to {}",
-        chrono::DateTime::from_timestamp(thirty_days_ago, 0)
-            .map(|d| d.format("%Y-%m-%d").to_string())
-            .unwrap_or_default(),
-        chrono::DateTime::from_timestamp(now, 0)
-            .map(|d| d.format("%Y-%m-%d").to_string())
-            .unwrap_or_default(),
-    );
+    println!("Querying bill data for cycle {}", billing_cycle);
 
     let response = client
-        .query_bill_list(thirty_days_ago, now, Some(0), Some(10))
+        .query_bill_list(&billing_cycle, Some(0), Some(10))
         .await?;
 
     println!("Query successful!\n");
@@ -45,11 +36,11 @@ async fn main() -> cbilling::Result<()> {
         println!("\nBill items (showing up to 10):");
         for (i, item) in items.iter().enumerate() {
             println!(
-                "  {}. {} | Resource: {} | Amount: {}",
+                "  {}. {} | Resource: {} | Amount: {:.2}",
                 i + 1,
-                item.resource_type.as_deref().unwrap_or("Unknown"),
-                item.resource_name.as_deref().unwrap_or("N/A"),
-                item.show_amount.as_deref().unwrap_or("0"),
+                item.product_name.as_deref().unwrap_or("Unknown"),
+                item.resource_id.as_deref().unwrap_or("N/A"),
+                item.amount_real.or(item.amount).unwrap_or(0.0),
             );
         }
     } else {

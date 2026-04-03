@@ -7,15 +7,12 @@
 use std::collections::BTreeMap;
 
 use chrono::Utc;
-use hmac::Hmac;
 use reqwest::Client;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
-use sha2::Sha256;
+use sha1::Digest;
 
 use super::super::{BillingError, Result};
-
-type _HmacSha256 = Hmac<Sha256>;
 
 const UCLOUD_API_ENDPOINT: &str = "https://api.ucloud.cn";
 
@@ -32,7 +29,7 @@ pub struct UCloudBillResponse {
     #[serde(rename = "RetCode")]
     pub ret_code: i32,
     #[serde(rename = "Action")]
-    pub action: String,
+    pub action: Option<String>,
     #[serde(rename = "Message")]
     pub message: Option<String>,
     #[serde(rename = "TotalCount")]
@@ -43,30 +40,42 @@ pub struct UCloudBillResponse {
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct UCloudBillItem {
-    #[serde(rename = "StartTime")]
-    pub start_time: Option<i64>,
-    #[serde(rename = "EndTime")]
-    pub end_time: Option<i64>,
-    #[serde(rename = "OrderNo")]
-    pub order_no: Option<String>,
     #[serde(rename = "ResourceId")]
     pub resource_id: Option<String>,
     #[serde(rename = "ResourceType")]
     pub resource_type: Option<String>,
-    #[serde(rename = "ChargeType")]
-    pub charge_type: Option<String>,
-    #[serde(rename = "Amount")]
+    #[serde(rename = "OrderNo")]
+    pub order_no: Option<String>,
+    #[serde(rename = "Amount", deserialize_with = "deserialize_amount", default)]
     pub amount: Option<f64>,
-    #[serde(rename = "ShowAmount")]
-    pub show_amount: Option<String>,
+    #[serde(
+        rename = "AmountReal",
+        deserialize_with = "deserialize_amount",
+        default
+    )]
+    pub amount_real: Option<f64>,
     #[serde(rename = "Region")]
     pub region: Option<String>,
-    #[serde(rename = "Zone")]
-    pub zone: Option<String>,
-    #[serde(rename = "ProductType")]
-    pub product_type: Option<String>,
-    #[serde(rename = "ResourceName")]
-    pub resource_name: Option<String>,
+    #[serde(rename = "ProductName")]
+    pub product_name: Option<String>,
+    #[serde(rename = "ProductCategory")]
+    pub product_category: Option<String>,
+    #[serde(rename = "ResourceExtId")]
+    pub resource_ext_id: Option<String>,
+}
+
+/// Deserialize Amount which may be a string or number in UCloud API
+fn deserialize_amount<'de, D>(deserializer: D) -> std::result::Result<Option<f64>, D::Error>
+where
+    D: serde::Deserializer<'de>,
+{
+    let v = Value::deserialize(deserializer)?;
+    match v {
+        Value::Number(n) => Ok(n.as_f64()),
+        Value::String(s) => Ok(s.parse::<f64>().ok()),
+        Value::Null => Ok(None),
+        _ => Ok(None),
+    }
 }
 
 impl UCloudBillingClient {
@@ -79,9 +88,9 @@ impl UCloudBillingClient {
         }
     }
 
-    /// Generate UCloud API signature
+    /// Generate UCloud API signature (SHA-1 per UCloud spec)
     fn generate_signature(&self, params: &BTreeMap<String, String>) -> Result<String> {
-        // Build canonical query string
+        // Build canonical string: sorted key-value pairs concatenated, then private key
         let mut param_str = String::new();
         for (key, value) in params.iter() {
             param_str.push_str(key);
@@ -89,9 +98,7 @@ impl UCloudBillingClient {
         }
         param_str.push_str(&self.private_key);
 
-        // Calculate SHA256 hash
-        use sha2::Digest;
-        let mut hasher = sha2::Sha256::new();
+        let mut hasher = sha1::Sha1::new();
         hasher.update(param_str.as_bytes());
         let result = hasher.finalize();
 
@@ -105,7 +112,6 @@ impl UCloudBillingClient {
         params.insert("Action".to_string(), action.to_string());
         params.insert("PublicKey".to_string(), self.public_key.clone());
         params.insert("ProjectId".to_string(), self.project_id.clone());
-        params.insert("Region".to_string(), "cn-bj2".to_string()); // Default region
 
         params
     }
@@ -158,23 +164,19 @@ impl UCloudBillingClient {
         Ok(json_response)
     }
 
-    /// Query bill list
+    /// Query bill detail list using ListUBillDetail API
+    ///
+    /// `billing_cycle` should be in "YYYY-MM" format (e.g. "2026-03")
     pub async fn query_bill_list(
         &self,
-        begin_time: i64,
-        end_time: i64,
+        billing_cycle: &str,
         offset: Option<i32>,
         limit: Option<i32>,
     ) -> Result<UCloudBillResponse> {
-        tracing::info!(
-            "Querying UCloud billing from {} to {}",
-            begin_time,
-            end_time
-        );
+        tracing::info!("Querying UCloud billing for cycle {}", billing_cycle);
 
         let mut params = BTreeMap::new();
-        params.insert("BeginTime".to_string(), begin_time.to_string());
-        params.insert("EndTime".to_string(), end_time.to_string());
+        params.insert("BillingCycle".to_string(), billing_cycle.to_string());
 
         if let Some(off) = offset {
             params.insert("Offset".to_string(), off.to_string());
@@ -184,7 +186,7 @@ impl UCloudBillingClient {
             params.insert("Limit".to_string(), lim.to_string());
         }
 
-        let response = self.call_api("GetBillDataFileUrl", params).await?;
+        let response = self.call_api("ListUBillDetail", params).await?;
 
         tracing::debug!(
             "UCloud API response: {}",
@@ -192,7 +194,10 @@ impl UCloudBillingClient {
         );
 
         let result: UCloudBillResponse = serde_json::from_value(response.clone()).map_err(|e| {
-            BillingError::ServiceError(format!("Failed to parse UCloud bill response: {}", e))
+            BillingError::ServiceError(format!(
+                "Failed to parse UCloud bill response: {} | raw: {}",
+                e, response
+            ))
         })?;
 
         if result.ret_code != 0 {
@@ -207,10 +212,10 @@ impl UCloudBillingClient {
 
     /// Test credentials
     pub async fn test_credentials(&self) -> Result<bool> {
-        let now = Utc::now().timestamp();
-        let yesterday = now - 86400;
+        let now = Utc::now();
+        let cycle = now.format("%Y-%m").to_string();
 
-        match self.query_bill_list(yesterday, now, Some(0), Some(1)).await {
+        match self.query_bill_list(&cycle, Some(0), Some(1)).await {
             Ok(response) => Ok(response.ret_code == 0),
             Err(_) => Ok(false),
         }

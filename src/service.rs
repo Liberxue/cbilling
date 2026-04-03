@@ -718,32 +718,6 @@ impl CloudBillingService {
 
             let client = ucloud::UCloudBillingClient::new(public_key, private_key, project_id);
 
-            // Convert billing_cycle "2026-03" to timestamps
-            let parts: Vec<&str> = billing_cycle.split('-').collect();
-            let year: i32 = parts[0].parse().unwrap_or(2026);
-            let month: u32 = parts[1].parse().unwrap_or(1);
-            let start = chrono::NaiveDate::from_ymd_opt(year, month, 1)
-                .ok_or_else(|| {
-                    BillingError::ServiceError(format!("Invalid date: {}", billing_cycle))
-                })?
-                .and_hms_opt(0, 0, 0)
-                .ok_or_else(|| BillingError::ServiceError("Invalid time".to_string()))?
-                .and_utc()
-                .timestamp();
-            let (end_y, end_m) = if month == 12 {
-                (year + 1, 1)
-            } else {
-                (year, month + 1)
-            };
-            let end = chrono::NaiveDate::from_ymd_opt(end_y, end_m, 1)
-                .ok_or_else(|| {
-                    BillingError::ServiceError(format!("Invalid end date: {}-{:02}", end_y, end_m))
-                })?
-                .and_hms_opt(0, 0, 0)
-                .ok_or_else(|| BillingError::ServiceError("Invalid time".to_string()))?
-                .and_utc()
-                .timestamp();
-
             // Paginate through all pages
             let limit = 100;
             let mut offset = 0;
@@ -751,7 +725,7 @@ impl CloudBillingService {
 
             loop {
                 let response = client
-                    .query_bill_list(start, end, Some(offset), Some(limit))
+                    .query_bill_list(billing_cycle, Some(offset), Some(limit))
                     .await?;
 
                 let api_total = response.total_count.unwrap_or(0);
@@ -761,11 +735,12 @@ impl CloudBillingService {
                         break;
                     }
                     for item in &items {
-                        let cost = item.amount.unwrap_or(0.0);
+                        let cost = item.amount_real.or(item.amount).unwrap_or(0.0);
                         total_cost += cost;
                         let name = item
-                            .resource_type
+                            .product_name
                             .clone()
+                            .or_else(|| item.resource_type.clone())
                             .unwrap_or_else(|| "Unknown".to_string());
                         *products_map.entry(name).or_insert(0.0) += cost;
                     }
