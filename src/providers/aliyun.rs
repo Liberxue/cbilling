@@ -389,6 +389,95 @@ fn percent_encode(input: &str) -> String {
         .replace("%7E", "~")
 }
 
+// ── BillingProvider adapter ──────────────────────────────────────────────
+
+use super::traits::{BillingProvider, RawBillItem};
+use crate::service::CloudAccountConfig;
+
+/// Adapter that implements [`BillingProvider`] for Aliyun.
+pub struct AliyunBillingAdapter {
+    client: AliyunBillingClient,
+}
+
+impl AliyunBillingAdapter {
+    /// Create an adapter from a [`CloudAccountConfig`].
+    pub fn from_config(config: &CloudAccountConfig) -> Result<Self> {
+        let ak = config
+            .access_key_id
+            .clone()
+            .ok_or_else(|| BillingError::ServiceError("Missing access_key_id".to_string()))?;
+        let sk = config
+            .access_key_secret
+            .clone()
+            .ok_or_else(|| BillingError::ServiceError("Missing access_key_secret".to_string()))?;
+        Ok(Self {
+            client: AliyunBillingClient::new(ak, sk),
+        })
+    }
+}
+
+impl BillingProvider for AliyunBillingAdapter {
+    fn provider_name(&self) -> &'static str {
+        "aliyun"
+    }
+
+    fn currency(&self) -> &'static str {
+        "CNY"
+    }
+
+    async fn query_bill_items(&self, billing_cycle: &str) -> Result<Vec<RawBillItem>> {
+        let page_size = 300;
+        let mut page_num = 1;
+        let mut items = Vec::new();
+
+        loop {
+            let response = self
+                .client
+                .query_instance_bill(billing_cycle, Some(page_num), Some(page_size), None)
+                .await?;
+
+            if !response.success {
+                tracing::error!("Aliyun API error: {} - {}", response.code, response.message);
+                break;
+            }
+
+            let data = match response.data {
+                Some(d) => d,
+                None => break,
+            };
+            let api_total = data.total_count;
+
+            if let Some(bill_items) = data.items {
+                for item in bill_items.item {
+                    let cost = item.pretax_amount.unwrap_or(0.0);
+                    items.push(RawBillItem {
+                        product_name: item
+                            .product_name
+                            .unwrap_or_else(|| "Unknown Product".to_string()),
+                        product_code: item.product_code.unwrap_or_else(|| "unknown".to_string()),
+                        cost,
+                        region: item.region.unwrap_or_default(),
+                        instance_id: item.instance_id.unwrap_or_default(),
+                        usage: None,
+                        unit: None,
+                    });
+                }
+            }
+
+            if page_num * page_size >= api_total {
+                break;
+            }
+            page_num += 1;
+        }
+
+        Ok(items)
+    }
+
+    async fn test_credentials(&self) -> Result<bool> {
+        self.client.test_credentials().await
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

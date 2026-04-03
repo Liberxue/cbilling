@@ -273,6 +273,107 @@ impl CloudflareBillingClient {
     }
 }
 
+// ── BillingProvider adapter ──────────────────────────────────────────────
+
+use std::collections::HashMap;
+
+use super::traits::{BillingProvider, RawBillItem};
+use crate::service::CloudAccountConfig;
+
+/// Adapter that implements [`BillingProvider`] for Cloudflare.
+pub struct CloudflareBillingAdapter {
+    client: CloudflareBillingClient,
+}
+
+impl CloudflareBillingAdapter {
+    /// Create an adapter from a [`CloudAccountConfig`].
+    pub fn from_config(config: &CloudAccountConfig) -> Result<Self> {
+        let account_id = config
+            .access_key_id
+            .clone()
+            .ok_or_else(|| BillingError::ServiceError("Missing account_id".to_string()))?;
+
+        let client = if let Some(ref token) = config.secret_key {
+            CloudflareBillingClient::new_with_token(account_id, token.clone())
+        } else if let (Some(ref key), Some(ref email)) =
+            (&config.access_key_secret, &config.secret_id)
+        {
+            CloudflareBillingClient::new_with_key(account_id, key.clone(), email.clone())
+        } else {
+            return Err(BillingError::InvalidCredentials(
+                "Missing Cloudflare API token or API key+email".to_string(),
+            ));
+        };
+
+        Ok(Self { client })
+    }
+}
+
+impl BillingProvider for CloudflareBillingAdapter {
+    fn provider_name(&self) -> &'static str {
+        "cloudflare"
+    }
+
+    fn currency(&self) -> &'static str {
+        "USD"
+    }
+
+    async fn query_bill_items(&self, billing_cycle: &str) -> Result<Vec<RawBillItem>> {
+        // Get subscriptions -- these have actual pricing
+        let subs = self.client.get_subscriptions().await.unwrap_or_default();
+        let mut products_map: HashMap<String, f64> = HashMap::new();
+
+        for sub in &subs {
+            let price = sub.price.unwrap_or(0.0);
+            let name = sub
+                .rate_plan
+                .as_ref()
+                .and_then(|rp| rp.public_name.clone())
+                .unwrap_or_else(|| "Unknown Plan".to_string());
+            *products_map.entry(name).or_insert(0.0) += price;
+        }
+
+        // Also fetch billing history for the specified month
+        let history = self
+            .client
+            .get_all_billing_history()
+            .await
+            .unwrap_or_default();
+        for record in &history {
+            if let Some(ref occurred) = record.occurred_at {
+                if occurred.starts_with(billing_cycle) {
+                    if let Some(amount) = record.amount {
+                        let desc = record
+                            .description
+                            .clone()
+                            .unwrap_or_else(|| "Billing Charge".to_string());
+                        *products_map.entry(desc).or_insert(0.0) += amount;
+                    }
+                }
+            }
+        }
+
+        let items: Vec<RawBillItem> = products_map
+            .into_iter()
+            .map(|(name, cost)| RawBillItem {
+                product_name: name.clone(),
+                product_code: name,
+                cost,
+                region: String::new(),
+                instance_id: String::new(),
+                usage: None,
+                unit: None,
+            })
+            .collect();
+
+        Ok(items)
+    }
+
+    async fn test_credentials(&self) -> Result<bool> {
+        self.client.test_credentials().await
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

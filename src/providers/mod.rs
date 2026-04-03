@@ -40,7 +40,10 @@ pub mod cloudflare;
 //#[cfg(feature = "azure")]
 //pub mod azure;
 
+pub mod aggregation;
+pub mod factory;
 pub mod registry;
+pub mod traits;
 
 // Provider trait (can be expanded later with actual implementations)
 pub use registry::init;

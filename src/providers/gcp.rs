@@ -474,6 +474,101 @@ fn rsa_sha256_sign(private_key_pem: &str, data: &[u8]) -> Result<Vec<u8>> {
     Ok(signature.to_vec())
 }
 
+// ── BillingProvider adapter ──────────────────────────────────────────────
+
+use super::traits::{BillingProvider, RawBillItem};
+use crate::service::CloudAccountConfig;
+
+/// Adapter that implements [`BillingProvider`] for GCP.
+pub struct GcpBillingAdapter {
+    client: GcpBillingClient,
+    dataset: Option<String>,
+    billing_table: Option<String>,
+}
+
+impl GcpBillingAdapter {
+    /// Create an adapter from a [`CloudAccountConfig`].
+    ///
+    /// This is async because `GcpBillingClient::new()` is async.
+    pub async fn from_config(config: &CloudAccountConfig) -> Result<Self> {
+        let project_id = config
+            .project_id
+            .clone()
+            .ok_or_else(|| BillingError::ServiceError("Missing project_id".to_string()))?;
+
+        let client = if let Some(ref sa_json) = config.private_key {
+            GcpBillingClient::new(project_id, sa_json.clone()).await?
+        } else {
+            GcpBillingClient::new_from_credentials_file(project_id).await?
+        };
+
+        let dataset = std::env::var("GCP_BILLING_DATASET").ok();
+        let billing_table = std::env::var("GCP_BILLING_TABLE").ok();
+
+        Ok(Self {
+            client,
+            dataset,
+            billing_table,
+        })
+    }
+}
+
+impl BillingProvider for GcpBillingAdapter {
+    fn provider_name(&self) -> &'static str {
+        "gcp"
+    }
+
+    fn currency(&self) -> &'static str {
+        "USD"
+    }
+
+    async fn query_bill_items(&self, billing_cycle: &str) -> Result<Vec<RawBillItem>> {
+        let mut items = Vec::new();
+
+        if let Some(ref ds) = self.dataset {
+            // BigQuery billing export -- returns actual costs
+            let cost_items = self
+                .client
+                .query_billing_costs(billing_cycle, ds, self.billing_table.as_deref())
+                .await?;
+
+            for item in &cost_items {
+                items.push(RawBillItem {
+                    product_name: item.service_name.clone(),
+                    product_code: item.service_id.clone(),
+                    cost: item.cost,
+                    region: String::new(),
+                    instance_id: String::new(),
+                    usage: item.usage_amount,
+                    unit: item.usage_unit.clone(),
+                });
+            }
+        } else {
+            // Fallback: list services (no cost data)
+            let services = self.client.list_services().await.unwrap_or_default();
+            for svc in services {
+                let name = svc.display_name.unwrap_or_else(|| svc.name.clone());
+                let code = svc.service_id.unwrap_or_else(|| svc.name.clone());
+                items.push(RawBillItem {
+                    product_name: name,
+                    product_code: code,
+                    cost: 0.0,
+                    region: String::new(),
+                    instance_id: String::new(),
+                    usage: None,
+                    unit: None,
+                });
+            }
+        }
+
+        Ok(items)
+    }
+
+    async fn test_credentials(&self) -> Result<bool> {
+        self.client.test_credentials().await
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
