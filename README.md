@@ -7,7 +7,7 @@
 [![docs.rs](https://docs.rs/cbilling/badge.svg)](https://docs.rs/cbilling)
 [![License: Apache-2.0](https://img.shields.io/badge/License-Apache--2.0-blue.svg)](LICENSE)
 
-**AI-native CLI for multi-cloud billing** — query, compare, and visualize costs from AWS, GCP, Alibaba Cloud, Tencent Cloud, Volcengine, UCloud, and Cloudflare in one terminal.
+**Multi-cloud billing CLI & SDK for Rust** — query, compare, and visualize costs from AWS, GCP, Alibaba Cloud, Tencent Cloud, Volcengine, UCloud, and Cloudflare in one terminal.
 
 [![asciicast](https://asciinema.org/a/Wgsc4BxlnGlc92rl.svg)](https://asciinema.org/a/Wgsc4BxlnGlc92rl)
 
@@ -94,6 +94,10 @@ cbilling providers
 cbilling query aliyun
 cbilling query aws --month 2026-03
 
+# JSON output (for scripting & AI agents)
+cbilling query gcp --format json
+cbilling summary --format json
+
 # Export to CSV
 cbilling query tencentcloud --csv billing.csv
 
@@ -101,6 +105,8 @@ cbilling query tencentcloud --csv billing.csv
 cbilling summary
 cbilling summary --month 2026-01
 ```
+
+All commands support `--format json` for machine-readable output.
 
 ### Output Examples
 
@@ -286,6 +292,24 @@ RegionDetail { region, cost, count }
 | `gcp` | Google Cloud (default) |
 | `cloudflare` | Cloudflare (default) |
 | `all-providers` | All of the above |
+
+## Skill (AI Integration)
+
+Install the skill to give Claude full knowledge of all `cbilling` commands:
+
+```bash
+npx skills add Liberxue/cbilling
+```
+
+Once installed, Claude can query your cloud billing data directly:
+
+```
+claude> What's my total cloud spend this month?
+claude> Which Aliyun services cost the most in March?
+claude> Compare AWS costs between February and March
+```
+
+All commands output structured JSON (`--format json`) for AI-agent tool-calling.
 
 ## Project Structure
 

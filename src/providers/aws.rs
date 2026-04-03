@@ -336,8 +336,8 @@ impl AwsBillingAdapter {
         let client = if let (Some(ak), Some(sk)) = (&config.access_key_id, secret) {
             AwsBillingClient::new(ak.clone(), sk.clone(), region).await?
         } else {
-                AwsBillingClient::new_with_default_credentials(region).await?
-            };
+            AwsBillingClient::new_with_default_credentials(region).await?
+        };
 
         Ok(Self { client })
     }
