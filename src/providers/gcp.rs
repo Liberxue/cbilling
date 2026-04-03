@@ -35,6 +35,7 @@ struct ServiceAccountKey {
 
 // ── Response types ──────────────────────────────────────────────────────
 
+/// A GCP billing account record.
 #[derive(Debug, Serialize, Deserialize)]
 pub struct GcpBillingAccount {
     pub name: String,
@@ -43,6 +44,7 @@ pub struct GcpBillingAccount {
     pub open: Option<bool>,
 }
 
+/// Response listing GCP billing accounts.
 #[derive(Debug, Serialize, Deserialize)]
 pub struct GcpBillingAccountList {
     #[serde(rename = "billingAccounts", default)]
@@ -51,6 +53,7 @@ pub struct GcpBillingAccountList {
     pub next_page_token: Option<String>,
 }
 
+/// Billing information for a GCP project.
 #[derive(Debug, Serialize, Deserialize)]
 pub struct GcpProjectBillingInfo {
     #[serde(rename = "projectId")]
@@ -61,6 +64,7 @@ pub struct GcpProjectBillingInfo {
     pub billing_enabled: Option<bool>,
 }
 
+/// A GCP Cloud Billing service entry.
 #[derive(Debug, Serialize, Deserialize)]
 pub struct GcpService {
     pub name: String,
@@ -70,6 +74,7 @@ pub struct GcpService {
     pub display_name: Option<String>,
 }
 
+/// Response listing GCP billing services.
 #[derive(Debug, Serialize, Deserialize)]
 pub struct GcpServiceList {
     #[serde(default)]
@@ -78,6 +83,7 @@ pub struct GcpServiceList {
     pub next_page_token: Option<String>,
 }
 
+/// A single cost line item from GCP BigQuery billing export.
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct GcpCostItem {
     pub service_name: String,

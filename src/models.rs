@@ -106,6 +106,7 @@ pub enum Provider {
 }
 
 impl Provider {
+    /// Returns the string identifier for this provider.
     pub fn as_str(&self) -> &'static str {
         match self {
             Provider::Aliyun => "aliyun",

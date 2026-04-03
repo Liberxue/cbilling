@@ -11,7 +11,7 @@
 //! - **Aliyun (Alibaba Cloud)** - feature: `aliyun`
 //! - **Tencent Cloud** - feature: `tencentcloud`
 //! - **AWS** - feature: `aws`
-//! - **Volcengine (火山云)** - feature: `volcengine`
+//! - **Volcengine** - feature: `volcengine`
 //! - **UCloud** - feature: `ucloud`
 //! - **Azure** - feature: `azure` (planned)
 

@@ -24,6 +24,7 @@ pub struct AwsCostResponse {
     pub results_by_time: Option<Vec<AwsCostResult>>,
 }
 
+/// A single time-period result from the AWS Cost Explorer API.
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct AwsCostResult {
     pub time_period: AwsTimePeriod,
@@ -32,12 +33,14 @@ pub struct AwsCostResult {
     pub estimated: Option<bool>,
 }
 
+/// Start/end date range for an AWS cost query.
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct AwsTimePeriod {
     pub start: String,
     pub end: String,
 }
 
+/// A grouped cost entry from the AWS Cost Explorer API.
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct AwsCostGroup {
     pub keys: Vec<String>,
