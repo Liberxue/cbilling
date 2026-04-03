@@ -24,6 +24,7 @@ pub struct UCloudBillingClient {
     http_client: Client,
 }
 
+/// UCloud billing API response.
 #[derive(Debug, Serialize, Deserialize)]
 pub struct UCloudBillResponse {
     #[serde(rename = "RetCode")]
@@ -38,6 +39,7 @@ pub struct UCloudBillResponse {
     pub items: Option<Vec<UCloudBillItem>>,
 }
 
+/// A single bill line item from UCloud.
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct UCloudBillItem {
     #[serde(rename = "ResourceId")]
@@ -79,6 +81,7 @@ where
 }
 
 impl UCloudBillingClient {
+    /// Creates a new UCloud billing client with the given credentials.
     pub fn new(public_key: String, private_key: String, project_id: String) -> Self {
         Self {
             public_key,

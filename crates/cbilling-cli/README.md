@@ -13,11 +13,17 @@ Terminal dashboard and CLI for multi-cloud billing — query, compare, and expor
 
 ## Install
 
+### curl (pre-built binary)
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/Liberxue/cbilling/main/scripts/install.sh | bash
+```
+
+### Cargo
+
 ```bash
 cargo install cbilling-cli
 ```
-
-Or download pre-built binaries from [GitHub Releases](https://github.com/Liberxue/cbilling/releases).
 
 ## Usage
 

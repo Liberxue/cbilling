@@ -1,6 +1,9 @@
 mod app;
 mod event;
+mod styles;
 mod ui;
+mod views;
+mod widgets;
 
 use std::time::Duration;
 

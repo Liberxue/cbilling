@@ -25,6 +25,7 @@ pub struct AliyunBillingClient {
     http_client: Client,
 }
 
+/// Aliyun account-level bill API response.
 #[derive(Debug, Serialize, Deserialize)]
 pub struct AliyunAccountBillResponse {
     #[serde(rename = "Success")]
@@ -39,6 +40,7 @@ pub struct AliyunAccountBillResponse {
     pub request_id: String,
 }
 
+/// Paginated account bill data returned by the Aliyun API.
 #[derive(Debug, Serialize, Deserialize)]
 pub struct AliyunAccountBillData {
     #[serde(rename = "BillingCycle")]
@@ -57,12 +59,14 @@ pub struct AliyunAccountBillData {
     pub items: Option<AliyunBillItems>,
 }
 
+/// Wrapper for a list of Aliyun account bill items.
 #[derive(Debug, Serialize, Deserialize)]
 pub struct AliyunBillItems {
     #[serde(rename = "Item")]
     pub item: Vec<AliyunBillItem>,
 }
 
+/// A single account-level bill line item from Aliyun.
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct AliyunBillItem {
     #[serde(rename = "BillingDate")]
@@ -95,6 +99,7 @@ pub struct AliyunBillItem {
     pub outstanding_amount: Option<f64>,
 }
 
+/// Aliyun instance-level bill API response.
 #[derive(Debug, Serialize, Deserialize)]
 pub struct AliyunInstanceBillResponse {
     #[serde(rename = "Success")]
@@ -109,6 +114,7 @@ pub struct AliyunInstanceBillResponse {
     pub request_id: String,
 }
 
+/// Paginated instance bill data returned by the Aliyun API.
 #[derive(Debug, Serialize, Deserialize)]
 pub struct AliyunInstanceBillData {
     #[serde(rename = "BillingCycle")]
@@ -125,12 +131,14 @@ pub struct AliyunInstanceBillData {
     pub items: Option<AliyunInstanceBillItems>,
 }
 
+/// Wrapper for a list of Aliyun instance bill items.
 #[derive(Debug, Serialize, Deserialize)]
 pub struct AliyunInstanceBillItems {
     #[serde(rename = "Item")]
     pub item: Vec<AliyunInstanceBillItem>,
 }
 
+/// A single instance-level bill line item from Aliyun.
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct AliyunInstanceBillItem {
     #[serde(rename = "InstanceID")]
@@ -154,6 +162,7 @@ pub struct AliyunInstanceBillItem {
 }
 
 impl AliyunBillingClient {
+    /// Creates a new Aliyun billing client with the given credentials.
     pub fn new(access_key_id: String, access_key_secret: String) -> Self {
         Self {
             access_key_id,
@@ -328,7 +337,7 @@ impl AliyunBillingClient {
         Ok(result)
     }
 
-    /// Query instance bill (实例账单明细)
+    /// Query instance-level bill details.
     pub async fn query_instance_bill(
         &self,
         billing_cycle: &str,

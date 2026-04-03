@@ -1,6 +1,6 @@
 // Copyright 2025 OpenObserve Inc.
 
-//! Volcengine (火山云) Billing Provider
+//! Volcengine Billing Provider
 //!
 //! This module implements billing integration with Volcengine using their REST API
 
@@ -27,6 +27,7 @@ pub struct VolcengineBillingClient {
     http_client: Client,
 }
 
+/// Volcengine bill detail API response.
 #[derive(Debug, Serialize, Deserialize)]
 pub struct VolcengineBillDetailResponse {
     #[serde(rename = "Result")]
@@ -35,6 +36,7 @@ pub struct VolcengineBillDetailResponse {
     pub response_metadata: VolcengineResponseMetadata,
 }
 
+/// Metadata returned with every Volcengine API response.
 #[derive(Debug, Serialize, Deserialize)]
 pub struct VolcengineResponseMetadata {
     #[serde(rename = "RequestId")]
@@ -51,6 +53,7 @@ pub struct VolcengineResponseMetadata {
     pub error: Option<VolcengineError>,
 }
 
+/// Error detail from the Volcengine API.
 #[derive(Debug, Serialize, Deserialize)]
 pub struct VolcengineError {
     #[serde(rename = "Code")]
@@ -59,6 +62,7 @@ pub struct VolcengineError {
     pub message: String,
 }
 
+/// Paginated bill detail result from Volcengine.
 #[derive(Debug, Serialize, Deserialize)]
 pub struct VolcengineBillDetailResult {
     #[serde(rename = "List")]
@@ -71,6 +75,7 @@ pub struct VolcengineBillDetailResult {
     pub offset: Option<i32>,
 }
 
+/// A single bill line item from Volcengine.
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct VolcengineBillItem {
     #[serde(rename = "BillID")]
@@ -120,6 +125,7 @@ pub struct VolcengineBillItem {
 }
 
 impl VolcengineBillingClient {
+    /// Creates a new Volcengine billing client with the given credentials.
     pub fn new(access_key_id: String, secret_access_key: String, region: String) -> Self {
         Self {
             access_key_id,

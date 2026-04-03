@@ -26,12 +26,14 @@ pub struct TencentCloudBillingClient {
     http_client: Client,
 }
 
+/// Tencent Cloud bill summary grouped by product.
 #[derive(Debug, Serialize, Deserialize)]
 pub struct TencentBillSummary {
     #[serde(rename = "Response")]
     pub response: TencentBillSummaryResponse,
 }
 
+/// Envelope for the Tencent Cloud bill summary API response.
 #[derive(Debug, Serialize, Deserialize)]
 pub struct TencentBillSummaryResponse {
     #[serde(rename = "Ready")]
@@ -44,6 +46,7 @@ pub struct TencentBillSummaryResponse {
     pub request_id: String,
 }
 
+/// Aggregate totals from the Tencent Cloud bill summary.
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct TencentSummaryTotal {
     #[serde(rename = "RealTotalCost")]
@@ -52,6 +55,7 @@ pub struct TencentSummaryTotal {
     pub total_cost: String,
 }
 
+/// A single product-level bill item from Tencent Cloud.
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct TencentBillItem {
     #[serde(rename = "BusinessCode")]
@@ -68,12 +72,14 @@ pub struct TencentBillItem {
     pub voucher_pay_amount: Option<String>,
 }
 
+/// Tencent Cloud detailed bill response.
 #[derive(Debug, Serialize, Deserialize)]
 pub struct TencentBillDetail {
     #[serde(rename = "Response")]
     pub response: TencentBillDetailResponse,
 }
 
+/// Envelope for the Tencent Cloud bill detail API response.
 #[derive(Debug, Serialize, Deserialize)]
 pub struct TencentBillDetailResponse {
     #[serde(rename = "DetailSet")]
@@ -84,6 +90,7 @@ pub struct TencentBillDetailResponse {
     pub request_id: String,
 }
 
+/// A single detail-level bill line item from Tencent Cloud.
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct TencentBillDetailItem {
     #[serde(rename = "BusinessCode")]
@@ -105,6 +112,7 @@ pub struct TencentBillDetailItem {
 }
 
 impl TencentCloudBillingClient {
+    /// Creates a new Tencent Cloud billing client with the given credentials.
     pub fn new(secret_id: String, secret_key: String, region: String) -> Self {
         Self {
             secret_id,
@@ -224,8 +232,8 @@ impl TencentCloudBillingClient {
     pub async fn get_bill_summary(&self, month: &str) -> Result<TencentBillSummary> {
         tracing::info!("Querying Tencent Cloud billing for month: {}", month);
 
-        // 根据官方文档，DescribeBillSummaryByProduct 需要 BeginTime 和 EndTime
-        // 格式为 YYYY-MM，必须相同月份
+        // Per the official docs, DescribeBillSummaryByProduct requires BeginTime and EndTime
+        // in YYYY-MM format, both set to the same month.
         let params = json!({
             "BeginTime": month,
             "EndTime": month,

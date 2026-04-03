@@ -23,6 +23,7 @@ pub struct CloudflareBillingClient {
 
 // ── Response types ──────────────────────────────────────────────────────
 
+/// Generic Cloudflare API v4 response wrapper.
 #[derive(Debug, Serialize, Deserialize)]
 pub struct CfApiResponse<T> {
     pub success: bool,
@@ -32,12 +33,14 @@ pub struct CfApiResponse<T> {
     pub result_info: Option<CfResultInfo>,
 }
 
+/// Cloudflare API error detail.
 #[derive(Debug, Serialize, Deserialize)]
 pub struct CfApiError {
     pub code: i32,
     pub message: String,
 }
 
+/// Pagination metadata from the Cloudflare API.
 #[derive(Debug, Serialize, Deserialize)]
 pub struct CfResultInfo {
     pub page: Option<i32>,
@@ -47,6 +50,7 @@ pub struct CfResultInfo {
     pub total_count: Option<i32>,
 }
 
+/// Cloudflare account billing profile.
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct CfBillingProfile {
     pub id: Option<String>,
@@ -56,6 +60,7 @@ pub struct CfBillingProfile {
     pub payment_email: Option<String>,
 }
 
+/// A single billing history entry from Cloudflare.
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct CfBillingHistory {
     pub id: String,
@@ -69,11 +74,13 @@ pub struct CfBillingHistory {
     pub zone: Option<CfBillingZone>,
 }
 
+/// Zone reference within a Cloudflare billing entry.
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct CfBillingZone {
     pub name: Option<String>,
 }
 
+/// Cloudflare subscription details.
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct CfSubscription {
     pub id: Option<String>,
@@ -86,6 +93,7 @@ pub struct CfSubscription {
     pub frequency: Option<String>,
 }
 
+/// A price component within a Cloudflare subscription.
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct CfComponentValue {
     pub name: Option<String>,
@@ -94,12 +102,14 @@ pub struct CfComponentValue {
     pub default: Option<f64>,
 }
 
+/// Zone associated with a Cloudflare subscription.
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct CfSubscriptionZone {
     pub id: Option<String>,
     pub name: Option<String>,
 }
 
+/// Rate plan metadata for a Cloudflare subscription.
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct CfRatePlan {
     pub id: Option<String>,

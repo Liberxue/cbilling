@@ -12,7 +12,7 @@
 //! - **Aliyun (Alibaba Cloud)** - feature: `aliyun` - Full support
 //! - **Tencent Cloud** - feature: `tencentcloud` - Full support
 //! - **AWS** - feature: `aws` - Full support via Cost Explorer API
-//! - **Volcengine (火山云)** - feature: `volcengine` - Full support
+//! - **Volcengine** - feature: `volcengine` - Full support
 //! - **UCloud** - feature: `ucloud` - Partial support
 //! - **Azure** - feature: `azure` - Planned
 //!
@@ -129,7 +129,7 @@ mod tests {
 
     #[test]
     fn test_version() {
-        assert!(!VERSION.is_empty());
+        assert!(VERSION.len() > 0);
     }
 
     #[tokio::test]
