@@ -599,7 +599,7 @@ dependencies = [
 
 [[package]]
 name = "cbilling"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "aws-config",
  "aws-sdk-costexplorer",
@@ -625,7 +625,7 @@ dependencies = [
 
 [[package]]
 name = "cbilling-cli"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "cbilling",
  "chrono",

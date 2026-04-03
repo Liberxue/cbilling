@@ -59,10 +59,15 @@ trap 'rm -rf "$TMPDIR"' EXIT
 curl -fsSL "$URL" -o "${TMPDIR}/${FILENAME}"
 tar xzf "${TMPDIR}/${FILENAME}" -C "$TMPDIR"
 
-# Install
-mkdir -p "$INSTALL_DIR"
-mv "${TMPDIR}/${BIN_NAME}" "${INSTALL_DIR}/${BIN_NAME}"
-chmod +x "${INSTALL_DIR}/${BIN_NAME}"
+# Install — use sudo if needed for system directories
+mkdir -p "$INSTALL_DIR" 2>/dev/null || sudo mkdir -p "$INSTALL_DIR"
+if [[ -w "$INSTALL_DIR" ]]; then
+    mv "${TMPDIR}/${BIN_NAME}" "${INSTALL_DIR}/${BIN_NAME}"
+    chmod +x "${INSTALL_DIR}/${BIN_NAME}"
+else
+    sudo mv "${TMPDIR}/${BIN_NAME}" "${INSTALL_DIR}/${BIN_NAME}"
+    sudo chmod +x "${INSTALL_DIR}/${BIN_NAME}"
+fi
 
 echo ""
 echo "✓ ${BIN_NAME} ${VERSION} installed to ${INSTALL_DIR}/${BIN_NAME}"
