@@ -1,11 +1,11 @@
 ---
 name: cbilling
-description: Query and analyze multi-cloud billing data from AWS, GCP, Alibaba Cloud, Tencent Cloud, Volcengine, UCloud, and Cloudflare. Use this skill when the user asks about cloud costs, billing, spending, or wants to compare costs across cloud providers.
+description: Query and analyze multi-cloud billing data from AWS, GCP, Alibaba Cloud, Tencent Cloud, Volcengine, UCloud, Cloudflare, and Vast.ai. Use this skill when the user asks about cloud costs, billing, spending, or wants to compare costs across cloud providers.
 ---
 
 # cbilling — Multi-cloud Billing CLI
 
-You have access to the `cbilling` CLI tool that queries real billing data from 7 cloud providers.
+You have access to the `cbilling` CLI tool that queries real billing data from 8 cloud providers.
 
 ## Commands
 
@@ -25,7 +25,7 @@ cbilling query <PROVIDER> --format json
 cbilling query <PROVIDER> --month 2026-03 --format json
 ```
 
-Providers: `aliyun`, `aws`, `tencentcloud`, `volcengine`, `ucloud`, `gcp`, `cloudflare`
+Providers: `aliyun`, `aws`, `tencentcloud`, `volcengine`, `ucloud`, `gcp`, `cloudflare`, `vastai`
 
 ### Summary across all providers
 
@@ -118,6 +118,6 @@ Extract `region_details` from each product and aggregate by region.
 
 - Always use `--format json` for structured output
 - When comparing months, run the query twice with different `--month` values
-- Currency may differ between providers (CNY for Chinese clouds, USD for AWS/GCP/Cloudflare)
+- Currency may differ between providers (CNY for Chinese clouds, USD for AWS/GCP/Cloudflare/Vast.ai)
 - If a provider errors, suggest the user check their credentials configuration
 - For the TUI dashboard, tell the user to run `cbilling` with no arguments

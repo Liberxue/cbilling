@@ -35,6 +35,9 @@ pub async fn init() -> Result<()> {
     #[cfg(feature = "cloudflare")]
     enabled_providers.push("cloudflare");
 
+    #[cfg(feature = "vastai")]
+    enabled_providers.push("vastai");
+
     #[cfg(feature = "azure")]
     enabled_providers.push("azure");
 

@@ -129,7 +129,7 @@ mod tests {
 
     #[test]
     fn test_version() {
-        assert!(VERSION.len() > 0);
+        assert!(!VERSION.is_empty());
     }
 
     #[tokio::test]

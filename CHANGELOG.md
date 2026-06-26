@@ -1,5 +1,14 @@
 # Changelog
 
+## [Unreleased]
+
+### Added
+- Vast.ai billing provider (`vastai` feature) using the Charges API (`/api/v0/charges/`), Bearer-key auth via `VASTAI_API_KEY`. Charges are broken down by GPU / disk / bandwidth.
+- `vastai_billing` example and Vast.ai documentation in README/SKILL.
+
+### Security
+- Dropped the deprecated `rustls` (legacy hyper-0.14) default feature of `aws-sdk-costexplorer`, removing the vulnerable `rustls-webpki 0.101.x` / `rustls 0.21` chain. Now resolves to `rustls-webpki 0.103.13`.
+
 ## [0.2.0] - 2026-04-04
 
 ### Added

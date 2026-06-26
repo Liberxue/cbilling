@@ -124,6 +124,7 @@ pub fn provider(name: &str) -> Style {
         "ucloud" => Color::Magenta,
         "gcp" => GREEN,
         "cloudflare" => Color::LightYellow,
+        "vastai" => Color::LightCyan,
         _ => Color::Reset,
     };
     Style::default().fg(color)

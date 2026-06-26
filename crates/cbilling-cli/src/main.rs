@@ -32,7 +32,7 @@ struct Cli {
 enum Commands {
     /// Query billing data for a specific provider and month
     Query {
-        /// Cloud provider: aliyun, aws, tencentcloud, volcengine, ucloud, gcp, cloudflare
+        /// Cloud provider: aliyun, aws, tencentcloud, volcengine, ucloud, gcp, cloudflare, vastai
         provider: String,
         /// Billing month (YYYY-MM), defaults to current month
         #[arg(short, long)]

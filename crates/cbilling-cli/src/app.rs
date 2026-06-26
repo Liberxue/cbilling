@@ -248,11 +248,9 @@ impl App {
                 self.input_mode = InputMode::Search;
                 self.search_query.clear();
             }
-            (_, KeyCode::Esc) => {
-                if !self.search_query.is_empty() {
-                    self.search_query.clear();
-                    self.table_state.select(Some(0));
-                }
+            (_, KeyCode::Esc) if !self.search_query.is_empty() => {
+                self.search_query.clear();
+                self.table_state.select(Some(0));
             }
             _ => {}
         }

@@ -77,6 +77,14 @@ pub async fn query_provider_items(
             let items = adapter.query_bill_items(billing_cycle).await?;
             Ok((items, adapter.currency()))
         }
+        #[cfg(feature = "vastai")]
+        "vastai" => {
+            use super::traits::BillingProvider;
+            use super::vastai::VastaiBillingAdapter;
+            let adapter = VastaiBillingAdapter::from_config(config)?;
+            let items = adapter.query_bill_items(billing_cycle).await?;
+            Ok((items, adapter.currency()))
+        }
         _ => Err(BillingError::ServiceError(format!(
             "Unknown or disabled provider: {}",
             provider_name
