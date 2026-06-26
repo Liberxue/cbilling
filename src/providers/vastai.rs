@@ -104,8 +104,7 @@ impl VastaiBillingClient {
         end_ts: i64,
         after_token: Option<&str>,
     ) -> Result<VastaiChargesResponse> {
-        let filters =
-            serde_json::json!({ "day": { "gte": start_ts, "lte": end_ts } }).to_string();
+        let filters = serde_json::json!({ "day": { "gte": start_ts, "lte": end_ts } }).to_string();
         let mut url = format!(
             "{}/charges/?select_filters={}&limit=500",
             VASTAI_API_ENDPOINT,
@@ -119,11 +118,7 @@ impl VastaiBillingClient {
     }
 
     /// Fetch all charges for a date range, following pagination.
-    pub async fn get_all_charges(
-        &self,
-        start_ts: i64,
-        end_ts: i64,
-    ) -> Result<Vec<VastaiCharge>> {
+    pub async fn get_all_charges(&self, start_ts: i64, end_ts: i64) -> Result<Vec<VastaiCharge>> {
         let mut all = Vec::new();
         let mut after_token: Option<String> = None;
 
