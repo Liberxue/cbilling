@@ -112,6 +112,7 @@ impl CloudBillingService {
             "volcengine" => "VOLCENGINE_ACCOUNTS",
             "gcp" => "GCP_ACCOUNTS",
             "cloudflare" => "CLOUDFLARE_ACCOUNTS",
+            "vastai" => "VASTAI_ACCOUNTS",
             _ => {
                 return Err(BillingError::ServiceError(format!(
                     "Unknown provider: {}",
@@ -199,6 +200,7 @@ impl CloudBillingService {
             "ucloud" => Self::load_legacy_ucloud(),
             "gcp" => Self::load_legacy_gcp(),
             "cloudflare" => Self::load_legacy_cloudflare(),
+            "vastai" => Self::load_legacy_vastai(),
             _ => Err(BillingError::ServiceError(format!(
                 "Provider {} not implemented for legacy mode",
                 provider
@@ -307,6 +309,12 @@ impl CloudBillingService {
     #[cfg(feature = "cloudflare")]
     pub async fn query_cloudflare(billing_cycle: &str) -> Result<BillingData> {
         Self::query_provider("cloudflare", billing_cycle).await
+    }
+
+    /// Query billing data from Vast.ai for a specific month
+    #[cfg(feature = "vastai")]
+    pub async fn query_vastai(billing_cycle: &str) -> Result<BillingData> {
+        Self::query_provider("vastai", billing_cycle).await
     }
 
     // ── Legacy account loaders ──────────────────────────────────────────
@@ -458,6 +466,34 @@ impl CloudBillingService {
         }
     }
 
+    fn load_legacy_vastai() -> Result<Vec<CloudAccountConfig>> {
+        // Vast.ai needs only a Bearer API key from https://cloud.vast.ai/manage-keys/
+        let api_key = std::env::var("VASTAI_API_KEY")
+            .ok()
+            .or_else(|| std::env::var("VAST_API_KEY").ok());
+
+        if let Some(key) = api_key {
+            Ok(vec![CloudAccountConfig {
+                id: "default".to_string(),
+                name: "Default Account".to_string(),
+                access_key_id: None,
+                access_key_secret: None,
+                secret_access_key: None,
+                secret_id: None,
+                secret_key: Some(key), // API key (Bearer token)
+                public_key: None,
+                private_key: None,
+                project_id: None,
+                region: None,
+                enabled: true,
+            }])
+        } else {
+            Err(BillingError::ServiceError(
+                "No Vast.ai credentials configured".to_string(),
+            ))
+        }
+    }
+
     /// Get list of configured cloud providers
     pub fn get_configured_providers() -> Vec<String> {
         let mut providers = Vec::new();
@@ -505,6 +541,11 @@ impl CloudBillingService {
         #[cfg(feature = "cloudflare")]
         if Self::load_accounts_for_provider("cloudflare").is_ok() {
             providers.push("cloudflare".to_string());
+        }
+
+        #[cfg(feature = "vastai")]
+        if Self::load_accounts_for_provider("vastai").is_ok() {
+            providers.push("vastai".to_string());
         }
 
         providers

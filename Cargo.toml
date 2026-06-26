@@ -6,18 +6,18 @@ name = "cbilling"
 version = "0.3.0"
 edition = "2021"
 license = "Apache-2.0"
-description = "Multi-cloud billing SDK for Rust — query billing data from AWS, GCP, Aliyun, Tencent Cloud, Volcengine, UCloud, Cloudflare"
+description = "Multi-cloud billing SDK for Rust — query billing data from AWS, GCP, Aliyun, Tencent Cloud, Volcengine, UCloud, Cloudflare, Vast.ai"
 homepage = "https://github.com/Liberxue/cbilling"
 repository = "https://github.com/Liberxue/cbilling"
 documentation = "https://docs.rs/cbilling"
 readme = "README.md"
 keywords = ["cloud", "billing", "aws", "gcp", "multi-cloud"]
 categories = ["api-bindings", "finance"]
-rust-version = "1.85"
+rust-version = "1.91"
 exclude = ["crates/", ".github/", "examples/"]
 
 [features]
-default = ["aliyun", "tencentcloud", "aws", "volcengine", "ucloud", "gcp", "cloudflare"]
+default = ["aliyun", "tencentcloud", "aws", "volcengine", "ucloud", "gcp", "cloudflare", "vastai"]
 
 aliyun = []
 tencentcloud = []
@@ -26,9 +26,10 @@ volcengine = []
 ucloud = []
 gcp = ["dep:rsa", "dep:pkcs8"]
 cloudflare = []
+vastai = []
 azure = []
 
-all-providers = ["aliyun", "tencentcloud", "aws", "volcengine", "ucloud", "gcp", "cloudflare"]
+all-providers = ["aliyun", "tencentcloud", "aws", "volcengine", "ucloud", "gcp", "cloudflare", "vastai"]
 
 [dependencies]
 serde = { version = "1.0", features = ["derive"] }
@@ -48,7 +49,13 @@ md5 = "0.7"
 urlencoding = "2.1"
 
 aws-config = { version = "1.6", optional = true }
-aws-sdk-costexplorer = { version = "1.67", optional = true }
+# Disable default features to drop the deprecated `rustls` (legacy hyper-0.14)
+# connector, which pulls the vulnerable rustls 0.21 -> rustls-webpki 0.101.x.
+# We only need the modern `default-https-client` (hyper 1.x, rustls 0.23) stack.
+aws-sdk-costexplorer = { version = "1.67", optional = true, default-features = false, features = [
+    "default-https-client",
+    "rt-tokio",
+] }
 
 rsa = { version = "0.9", optional = true, features = ["sha2"] }
 pkcs8 = { version = "0.10", optional = true, features = ["pem"] }
@@ -93,3 +100,8 @@ required-features = ["gcp"]
 name = "cloudflare_billing"
 path = "examples/cloudflare_billing.rs"
 required-features = ["cloudflare"]
+
+[[example]]
+name = "vastai_billing"
+path = "examples/vastai_billing.rs"
+required-features = ["vastai"]

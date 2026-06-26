@@ -103,6 +103,7 @@ pub enum Provider {
     UCloud,
     Gcp,
     Cloudflare,
+    Vastai,
 }
 
 impl Provider {
@@ -117,6 +118,7 @@ impl Provider {
             Provider::UCloud => "ucloud",
             Provider::Gcp => "gcp",
             Provider::Cloudflare => "cloudflare",
+            Provider::Vastai => "vastai",
         }
     }
 }
@@ -134,6 +136,7 @@ impl std::str::FromStr for Provider {
             "ucloud" => Ok(Provider::UCloud),
             "gcp" | "google" | "googlecloud" => Ok(Provider::Gcp),
             "cloudflare" | "cf" => Ok(Provider::Cloudflare),
+            "vastai" | "vast" | "vast.ai" => Ok(Provider::Vastai),
             _ => Err(format!("unknown provider: {}", s)),
         }
     }

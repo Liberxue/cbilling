@@ -36,6 +36,9 @@ pub mod gcp;
 #[cfg(feature = "cloudflare")]
 pub mod cloudflare;
 
+#[cfg(feature = "vastai")]
+pub mod vastai;
+
 // Azure support planned for future
 //#[cfg(feature = "azure")]
 //pub mod azure;
